@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { styles, svgPaths } from "./styles"
 
 export default function Home() {
   const [resumeFile, setResumeFile] = useState<File | null>(null)
@@ -28,50 +29,50 @@ export default function Home() {
 
   return (
     <div
-      className="min-h-screen font-sans"
+      className={styles.container}
       style={{ backgroundColor: "#4ACA7A" }}
     >
       {/* Header */}
-      <div className="p-8">
-        <h1 className="text-2xl font-semibold text-white">CoverMe</h1>
+      <div className={styles.header}>
+        <h1 className={styles.title}>CoverMe</h1>
       </div>
 
       {/* Main Content */}
-      <div className="flex flex-col px-8 space-y-6">
+      <div className={styles.mainContent}>
         {/* Resume Upload Field */}
-        <div className="flex items-center space-x-4">
+        <div className={styles.fieldContainer}>
           <div
-            className="w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors duration-200"
+            className={styles.circle}
             style={{
-              borderColor: resumeFile ? "white" : "white",
+              borderColor: "white",
               backgroundColor: resumeFile ? "white" : "transparent",
             }}
           >
             {resumeFile ? (
               <svg
-                className="w-4 h-4"
+                className={styles.checkIcon}
                 style={{ color: "#10b981" }}
                 fill="currentColor"
                 viewBox="0 0 20 20"
               >
                 <path
                   fillRule="evenodd"
-                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                  d={svgPaths.checkmark}
                   clipRule="evenodd"
                 />
               </svg>
             ) : null}
           </div>
-          <label className="flex items-center space-x-3 cursor-pointer transition-colors duration-200 px-6 py-4 rounded-lg">
+          <label className={styles.fileUpload}>
             <span
-              className={`font-medium ${
+              className={`${styles.fileUploadText} ${
                 resumeFile ? "text-white" : "text-white text-opacity-50"
               }`}
             >
               {resumeFile ? resumeFile.name : "Upload resume"}
             </span>
             <svg
-              className="w-5 h-5 text-white"
+              className={styles.uploadIcon}
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -80,37 +81,37 @@ export default function Home() {
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={2}
-                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                d={svgPaths.upload}
               />
             </svg>
             <input
               type="file"
               accept=".pdf"
               onChange={handleFileUpload}
-              className="hidden"
+              className={styles.fileInput}
             />
           </label>
         </div>
 
         {/* Link Paste Field */}
-        <div className="flex items-center space-x-4">
+        <div className={styles.fieldContainer}>
           <div
-            className="w-6 h-6 rounded-full border-2 flex items-center justify-center"
+            className={styles.circle}
             style={{
-              borderColor: linkUrl.trim() ? "white" : "white",
+              borderColor: "white",
               backgroundColor: linkUrl.trim() ? "white" : "transparent",
             }}
           >
             {linkUrl.trim() ? (
               <svg
-                className="w-4 h-4"
+                className={styles.checkIcon}
                 style={{ color: "#10b981" }}
                 fill="currentColor"
                 viewBox="0 0 20 20"
               >
                 <path
                   fillRule="evenodd"
-                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                  d={svgPaths.checkmark}
                   clipRule="evenodd"
                 />
               </svg>
@@ -121,7 +122,7 @@ export default function Home() {
             placeholder="Paste Job Link"
             value={linkUrl}
             onChange={handleLinkChange}
-            className="bg-transparent outline-none text-white font-medium placeholder-white placeholder-opacity-40 px-6 py-4 rounded-lg"
+            className={styles.urlInput}
             style={{
               width: linkUrl
                 ? `${Math.min(
@@ -135,20 +136,20 @@ export default function Home() {
 
         {/* Writing Sample Section - Only show when both fields are completed */}
         {bothFieldsCompleted && (
-          <div className="mt-6 space-y-4">
-            <h2 className="text-xl font-semibold text-white">
-              Tell us about your writing style
+          <div className={styles.writingSection}>
+            <h2 className={styles.sectionHeading}>
+              Write away!
             </h2>
-            <div className="w-full">
+            <div className={styles.writingContainer}>
               <textarea
                 value={writingSample}
                 onChange={handleWritingChange}
-                placeholder="Write as much or as little as you'd like, or paste a sample of your writing. The more you write, the more likely your cover letter will match your unique voice and style."
-                className="w-full h-[60vh] bg-gray-800 border border-[#85F4A6]/30 rounded-lg px-6 py-4 text-white font-medium placeholder-white/50 resize-none outline-none custom-scrollbar"
+                placeholder="Write as much as you'd like or paste a sample of your writing. The more you write, the more likely your cover letter will match your unique voice and style."
+                className={styles.textarea}
               />
             </div>
-            <div className="flex justify-center my-12">
-              <button className="bg-white text-gray-800 font-semibold px-8 py-3 rounded-lg hover:bg-gray-100 transition-colors duration-200 cursor-pointer">
+            <div className={styles.buttonContainer}>
+              <button className={styles.button}>
                 Create
               </button>
             </div>
