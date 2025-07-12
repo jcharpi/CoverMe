@@ -30,7 +30,9 @@ export const styles = {
   writingSection: "mt-6 space-y-4",
   writingContainer: "w-full",
   textarea:
-    "w-full h-[60vh] bg-gray-800 border border-[#85F4A6]/30 rounded-lg px-6 py-4 text-white font-medium placeholder-white/50 resize-none outline-none custom-scrollbar",
+    "w-full h-[50vh] bg-gray-800 rounded-lg px-6 py-4 text-white font-medium placeholder-white/50 resize-none outline-none custom-scrollbar",
+  textareaLarge:
+    "w-full h-[70vh] bg-gray-800 rounded-lg px-6 py-4 text-white font-medium placeholder-white/50 resize-none outline-none custom-scrollbar",
 
   // Button
   buttonContainer: "flex justify-center my-12",
