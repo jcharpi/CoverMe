@@ -39,7 +39,6 @@ export default function Output({
               value={aiOutput}
               onChange={(e) => setAiOutput(e.target.value)}
               className={styles.textareaLarge}
-              readOnly={false}
             />
           </div>
           <div className={styles.buttonContainer}>

@@ -4,12 +4,13 @@ import { useState } from "react"
 import { styles, svgPaths } from "./styles"
 import Output from "./output"
 
+const API_BASE_URL = "http://localhost:3001"
+
 export default function Input() {
   const [resumeFile, setResumeFile] = useState<File | null>(null)
   const [linkUrl, setLinkUrl] = useState("")
   const [writingSample, setWritingSample] = useState("")
   const [isProcessing, setIsProcessing] = useState(false)
-  const [summary, setSummary] = useState("")
   const [aiOutput, setAiOutput] = useState("")
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -40,21 +41,16 @@ export default function Input() {
 
     try {
       // First test if backend is running
-      console.log("Testing backend connection...")
-      const healthCheck = await fetch("http://localhost:3001/api/health")
+      const healthCheck = await fetch(`${API_BASE_URL}/api/health`)
       if (!healthCheck.ok) {
         throw new Error("Backend server is not responding")
       }
-      console.log("Backend connection successful")
 
-      console.log("Sending resume for processing...")
-      const response = await fetch(
-        "http://localhost:3001/api/summarize-resume",
-        {
-          method: "POST",
-          body: formData,
-        }
-      )
+      // Send resume for processing
+      const response = await fetch(`${API_BASE_URL}/api/summarize-resume`, {
+        method: "POST",
+        body: formData,
+      })
 
       if (!response.ok) {
         const errorData = await response
@@ -66,8 +62,6 @@ export default function Input() {
       }
 
       const data = await response.json()
-      console.log("Resume processed successfully:", data)
-      setSummary(data.summary)
 
       // Set the AI output for conditional rendering
       setAiOutput(data.summary || "AI output will appear here")
@@ -92,7 +86,6 @@ export default function Input() {
     setResumeFile(null)
     setLinkUrl("")
     setWritingSample("")
-    setSummary("")
   }
 
   // Show AI output view when aiOutput exists
@@ -195,10 +188,7 @@ export default function Input() {
             className={styles.urlInput}
             style={{
               width: linkUrl
-                ? `${Math.min(
-                    linkUrl.length * 8 + 100,
-                    window.innerWidth * 0.5
-                  )}px`
+                ? `${Math.min(linkUrl.length * 8 + 100, 400)}px`
                 : "175px",
             }}
           />
@@ -225,14 +215,6 @@ export default function Input() {
                 {isProcessing ? "Processing..." : "Create"}
               </button>
             </div>
-            {summary && (
-              <div className="mt-6 p-4 bg-white bg-opacity-20 rounded-lg">
-                <h3 className="text-white font-semibold mb-2">
-                  Resume Summary:
-                </h3>
-                <p className="text-white text-sm">{summary}</p>
-              </div>
-            )}
           </div>
         )}
       </div>
