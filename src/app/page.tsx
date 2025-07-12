@@ -7,6 +7,8 @@ export default function Home() {
   const [resumeFile, setResumeFile] = useState<File | null>(null)
   const [linkUrl, setLinkUrl] = useState("")
   const [writingSample, setWritingSample] = useState("")
+  const [isProcessing, setIsProcessing] = useState(false)
+  const [summary, setSummary] = useState("")
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -26,6 +28,57 @@ export default function Home() {
   }
 
   const bothFieldsCompleted = resumeFile && linkUrl.trim()
+
+  const handleCreate = async () => {
+    if (!resumeFile) return
+
+    setIsProcessing(true)
+    const formData = new FormData()
+    formData.append('resume', resumeFile)
+
+    try {
+      // First test if backend is running
+      console.log('Testing backend connection...')
+      const healthCheck = await fetch('http://localhost:3001/api/health')
+      if (!healthCheck.ok) {
+        throw new Error('Backend server is not responding')
+      }
+      console.log('Backend connection successful')
+
+      console.log('Sending resume for processing...')
+      const response = await fetch('http://localhost:3001/api/summarize-resume', {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+        throw new Error(`Server error: ${errorData.error || response.statusText}`)
+      }
+
+      const data = await response.json()
+      console.log('Resume processed successfully:', data)
+      setSummary(data.summary)
+      
+      // Trigger download
+      const downloadLink = document.createElement('a')
+      downloadLink.href = `http://localhost:3001${data.downloadUrl}`
+      downloadLink.download = data.filename
+      document.body.appendChild(downloadLink)
+      downloadLink.click()
+      document.body.removeChild(downloadLink)
+      
+    } catch (error) {
+      console.error('Error details:', error)
+      if (error.message.includes('fetch')) {
+        alert('Cannot connect to backend server. Make sure it\'s running on port 3001.')
+      } else {
+        alert(`Error: ${error.message}`)
+      }
+    } finally {
+      setIsProcessing(false)
+    }
+  }
 
   return (
     <div className={styles.container} style={{ backgroundColor: "#4ACA7A" }}>
@@ -144,8 +197,20 @@ export default function Home() {
               />
             </div>
             <div className={styles.buttonContainer}>
-              <button className={styles.button}>Create</button>
+              <button 
+                className={styles.button}
+                onClick={handleCreate}
+                disabled={isProcessing}
+              >
+                {isProcessing ? 'Processing...' : 'Create'}
+              </button>
             </div>
+            {summary && (
+              <div className="mt-6 p-4 bg-white bg-opacity-20 rounded-lg">
+                <h3 className="text-white font-semibold mb-2">Resume Summary:</h3>
+                <p className="text-white text-sm">{summary}</p>
+              </div>
+            )}
           </div>
         )}
       </div>

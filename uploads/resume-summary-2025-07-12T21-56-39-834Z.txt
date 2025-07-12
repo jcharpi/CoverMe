@@ -1,0 +1,16 @@
+Josh Charpentier is a dedicated and accomplished professional with advanced degrees in Computer Science (Bachelor's) from the University of Wisconsin-Madison. With exceptional academic performance reflected by his GPA 3.86/4.00, he has actively contributed to academia as well through peer mentoring.
+
+In industry settings like Skyward Inc., Josh demonstrated strong technical proficiency; notably at Software Engineer level after being promoted directly following graduation in May 2025—an indication of pre-existing expertise and promising future potential within the tech field (June 2024 - Present).
+
+During his student tenure, from August to December 2023 as a Peer Mentor for COMP SCI 571 – Building User Interfaces, Josh mentored over 150 undergraduates. His mentorship was hands-on with in-depth code reviews which reinforced their knowledge of modern JavaScript and React technologies—further bolstering industry-standard front-end design practices.
+
+Josh’s passion projects reflect his diverse skill set across multiple programming languages including C#, Python, JavaScript (React, TypeScript), Ruby, Swift—and an array spanning Agile methodologies to advanced tools like Supabase & PostgreSQL. His notable works include creating a free time project platform MadCourses for UW-Madison—a highly technical endeavor integrating vector search technology and deploying APIs via FastAPI.
+
+Further showcasing his breadth of expertise in software development were projects such as parkIt, BreakIt (a habit-breaking app), Daily Grind (coffee shop locator site) all executed with React. Each exemplifies not just proficiency but also innovation through the integration of libraries like Tailwind CSS for styling or leveraging Google's Maps API alongside other tools to enhance user experience.
+
+In summary, Josh Charpentier is a versatile and high-performing software engineer who combines academic rigor in Computer Science education—with practical applications spanning from JavaScript front-end development with React Native (for mobile app projects) through robust backend systems using Django REST APIs. His dedication towards continuous learning—spanning fundamental to advanced programming skills—is evident across various domains he has contributed significantly within the tech industry and academia alike.
+
+Contact: charpentier.josh@gmail.com
+Phone: 262-271-5486
+
+LinkedIn Profile (not provided): This would typically be included for potential employers or networking purposes.
