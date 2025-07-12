@@ -28,10 +28,7 @@ export default function Home() {
   const bothFieldsCompleted = resumeFile && linkUrl.trim()
 
   return (
-    <div
-      className={styles.container}
-      style={{ backgroundColor: "#4ACA7A" }}
-    >
+    <div className={styles.container} style={{ backgroundColor: "#4ACA7A" }}>
       {/* Header */}
       <div className={styles.header}>
         <h1 className={styles.title}>CoverMe</h1>
@@ -137,9 +134,7 @@ export default function Home() {
         {/* Writing Sample Section - Only show when both fields are completed */}
         {bothFieldsCompleted && (
           <div className={styles.writingSection}>
-            <h2 className={styles.sectionHeading}>
-              Write away!
-            </h2>
+            <h2 className={styles.sectionHeading}>Write away!</h2>
             <div className={styles.writingContainer}>
               <textarea
                 value={writingSample}
@@ -149,9 +144,7 @@ export default function Home() {
               />
             </div>
             <div className={styles.buttonContainer}>
-              <button className={styles.button}>
-                Create
-              </button>
+              <button className={styles.button}>Create</button>
             </div>
           </div>
         )}
