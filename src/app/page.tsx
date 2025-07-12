@@ -83,7 +83,7 @@ export default function Home() {
             </svg>
             <input
               type="file"
-              accept=".pdf"
+              accept=".txt"
               onChange={handleFileUpload}
               className={styles.fileInput}
             />
