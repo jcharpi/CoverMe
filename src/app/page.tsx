@@ -1,103 +1,160 @@
-import Image from "next/image";
+"use client"
+
+import { useState } from "react"
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [resumeFile, setResumeFile] = useState<File | null>(null)
+  const [linkUrl, setLinkUrl] = useState("")
+  const [writingSample, setWritingSample] = useState("")
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (file) {
+      setResumeFile(file)
+    }
+  }
+
+  const handleLinkChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setLinkUrl(event.target.value)
+  }
+
+  const handleWritingChange = (
+    event: React.ChangeEvent<HTMLTextAreaElement>
+  ) => {
+    setWritingSample(event.target.value)
+  }
+
+  const bothFieldsCompleted = resumeFile && linkUrl.trim()
+
+  return (
+    <div
+      className="min-h-screen font-sans"
+      style={{ backgroundColor: "#4ACA7A" }}
+    >
+      {/* Header */}
+      <div className="p-8">
+        <h1 className="text-2xl font-semibold text-white">CoverMe</h1>
+      </div>
+
+      {/* Main Content */}
+      <div className="flex flex-col px-8 space-y-6">
+        {/* Resume Upload Field */}
+        <div className="flex items-center space-x-4">
+          <div
+            className="w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors duration-200"
+            style={{
+              borderColor: resumeFile ? "white" : "white",
+              backgroundColor: resumeFile ? "white" : "transparent",
+            }}
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+            {resumeFile ? (
+              <svg
+                className="w-4 h-4"
+                style={{ color: "#10b981" }}
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            ) : null}
+          </div>
+          <label className="flex items-center space-x-3 cursor-pointer transition-colors duration-200 px-6 py-4 rounded-lg">
+            <span
+              className={`font-medium ${
+                resumeFile ? "text-white" : "text-white text-opacity-50"
+              }`}
+            >
+              {resumeFile ? resumeFile.name : "Upload resume"}
+            </span>
+            <svg
+              className="w-5 h-5 text-white"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+              />
+            </svg>
+            <input
+              type="file"
+              accept=".pdf"
+              onChange={handleFileUpload}
+              className="hidden"
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+          </label>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
+
+        {/* Link Paste Field */}
+        <div className="flex items-center space-x-4">
+          <div
+            className="w-6 h-6 rounded-full border-2 flex items-center justify-center"
+            style={{
+              borderColor: linkUrl.trim() ? "white" : "white",
+              backgroundColor: linkUrl.trim() ? "white" : "transparent",
+            }}
+          >
+            {linkUrl.trim() ? (
+              <svg
+                className="w-4 h-4"
+                style={{ color: "#10b981" }}
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            ) : null}
+          </div>
+          <input
+            type="url"
+            placeholder="Paste Job Link"
+            value={linkUrl}
+            onChange={handleLinkChange}
+            className="bg-transparent outline-none text-white font-medium placeholder-white placeholder-opacity-40 px-6 py-4 rounded-lg"
+            style={{
+              width: linkUrl
+                ? `${Math.min(
+                    linkUrl.length * 8 + 100,
+                    window.innerWidth * 0.5
+                  )}px`
+                : "175px",
+            }}
           />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+        </div>
+
+        {/* Writing Sample Section - Only show when both fields are completed */}
+        {bothFieldsCompleted && (
+          <div className="mt-6 space-y-4">
+            <h2 className="text-xl font-semibold text-white">
+              Tell us about your writing style
+            </h2>
+            <div className="w-full">
+              <textarea
+                value={writingSample}
+                onChange={handleWritingChange}
+                placeholder="Write as much or as little as you'd like, or paste a sample of your writing. The more you write, the more likely your cover letter will match your unique voice and style."
+                className="w-full h-[60vh] bg-gray-800 border border-[#85F4A6]/30 rounded-lg px-6 py-4 text-white font-medium placeholder-white/50 resize-none outline-none custom-scrollbar"
+              />
+            </div>
+            <div className="flex justify-center my-12">
+              <button className="bg-white text-gray-800 font-semibold px-8 py-3 rounded-lg hover:bg-gray-100 transition-colors duration-200 cursor-pointer">
+                Create
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
-  );
+  )
 }
