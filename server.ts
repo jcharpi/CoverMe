@@ -85,7 +85,15 @@ app.post(
       const resumeContent: string = req.file.buffer.toString("utf8")
 
       // Prepare prompt for Ollama to generate cover letter
-      const prompt: string = `Based on the following Stanford guide for cover letters and the applicant's resume information, generate a professional cover letter. It is absoluetely VITAL that you use the three paragraph format in the Stanford guide. Use the resume as context for the applicant's qualifications and experience.
+      const prompt: string = `You are a professional cover letter writer. Follow these STRICT requirements:
+
+1. STRUCTURE: Write EXACTLY 3 paragraphs (no more, no less)
+2. LENGTH: 300-400 words total
+3. FORMAT: Include proper business letter header
+4. PARAGRAPH BREAKDOWN:
+   - Paragraph 1: Opening (state intent, position, brief introduction)
+   - Paragraph 2: Qualifications (majority of content - highlight relevant skills/experience)
+   - Paragraph 3: Closing (follow-up plan, thank you)
 
 Stanford Cover Letter Guide:
 ${stanfordGuideContent}
@@ -93,7 +101,7 @@ ${stanfordGuideContent}
 Applicant's Resume:
 ${resumeContent}
 
-Remember, this must be a 3 paragraph cover letter, spanning about 300-400 words. Most words should be in the second paragraph. Remember 3 paragraphs with the proper header:`
+CRITICAL: Your response must contain EXACTLY 3 paragraphs in the body. Do not write more than 3 paragraphs. Each paragraph should be separated by a blank line.`
 
       // Call Ollama with configured model
       const response = await ollama.chat({
