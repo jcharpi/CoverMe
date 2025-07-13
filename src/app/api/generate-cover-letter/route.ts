@@ -2,14 +2,33 @@
  * API route for generating cover letters using OpenRouter
  */
 import { NextRequest, NextResponse } from "next/server"
+import { createCoverLetterPrompt } from "../../../server/services/aiService"
+import fs from "fs"
+import path from "path"
 
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData()
     const model = formData.get("model") as string
     const jobLink = formData.get("jobLink") as string
-    // const writingSample = formData.get('writingSample') as string
-    // const resumeFile = formData.get('resume') as File
+    const writingSample = (formData.get("writingSample") as string) || ""
+    const resumeFile = formData.get("resume") as File
+
+    // Read Stanford guide content
+    const stanfordGuidePath = path.join(
+      process.cwd(),
+      "src",
+      "data",
+      "stanford_guide.txt"
+    )
+    const stanfordGuideContent = fs.readFileSync(stanfordGuidePath, "utf-8")
+
+    // Process resume file if provided
+    let resumeContent = ""
+    if (resumeFile && resumeFile.size > 0) {
+      const resumeText = await resumeFile.text()
+      resumeContent = resumeText
+    }
 
     if (!process.env.OPENROUTER_API_KEY) {
       return NextResponse.json(
@@ -19,9 +38,13 @@ export async function POST(request: NextRequest) {
     }
 
     // Basic validation
-    if (!model || !jobLink) {
+    if (!model) {
+      return NextResponse.json({ error: "Model is required" }, { status: 400 })
+    }
+
+    if (!resumeContent) {
       return NextResponse.json(
-        { error: "Model and job link are required" },
+        { error: "Resume file is required" },
         { status: 400 }
       )
     }
@@ -41,7 +64,13 @@ export async function POST(request: NextRequest) {
           messages: [
             {
               role: "user",
-              content: `Generate a professional cover letter for this job: ${jobLink}`,
+              content: createCoverLetterPrompt(
+                resumeContent,
+                writingSample,
+                stanfordGuideContent,
+                jobLink || "",
+                !jobLink || jobLink.trim().toLowerCase() === "general"
+              ),
             },
           ],
         }),
@@ -56,11 +85,29 @@ export async function POST(request: NextRequest) {
     }
 
     const data = await response.json()
-    const coverLetter =
+    const aiOutput =
       data.choices?.[0]?.message?.content || "No content generated"
 
+    // Hardcoded header (same as server.ts)
+    const header = `Applicant Info:
+Address
+City, ST Zip Code
+Date
+
+Recipient Info:
+Name
+Job Title
+Company/Organization Name
+Address
+City, ST Zip Code
+
+`
+
+    // Combine header + AI output + signature
+    const finalCoverLetter = header + aiOutput + "\n\nSincerely,\n[Your Name]"
+
     return NextResponse.json({
-      summary: coverLetter,
+      summary: finalCoverLetter,
       hasAuthIssue: false,
     })
   } catch (error) {
