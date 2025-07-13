@@ -3,12 +3,16 @@
  */
 import { NextResponse } from 'next/server'
 
+const DEEPSEEK_CHAT = 'deepseek/deepseek-chat-v3-0324:free'
+const LLAMA_MAVERICK = 'meta-llama/llama-4-maverick:free'
+const DEEPSEEK_R1 = 'deepseek/deepseek-r1:free'
+const QWEN_235B = 'qwen/qwen3-235b-a22b:free'
+
 const OPENROUTER_FREE_MODELS = [
-  'deepseek/deepseek-r1-0528:free',
-  'deepseek/deepseek-chat:free',
-  'google/gemma-3-27b-it:free',
-  'qwen/qwen3-235b-a22b:free',
-  'mistralai/mistral-nemo:free'
+  DEEPSEEK_CHAT,
+  DEEPSEEK_R1,
+  LLAMA_MAVERICK,
+  QWEN_235B
 ]
 
 export async function GET() {

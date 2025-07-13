@@ -30,6 +30,18 @@ export default function ModelSelector({
 }: ModelSelectorProps) {
   if (availableModels.length === 0) return null
 
+  const formatModelName = (model: string) => {
+    // Extract text between first slash and colon, then format
+    const match = model.match(/\/([^:]+)/)
+    if (match) {
+      return match[1]
+        .split('-')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ')
+    }
+    return model
+  }
+
   return (
     <div className="flex items-center space-x-2">
       <label className="text-sm font-medium text-[var(--text-secondary)]">
@@ -42,7 +54,7 @@ export default function ModelSelector({
       >
         {availableModels.map((model) => (
           <option key={model} value={model}>
-            {model}
+            {formatModelName(model)}
           </option>
         ))}
       </select>
