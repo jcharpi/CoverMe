@@ -1,9 +1,64 @@
-import { chromium } from "playwright"
+import { chromium, Page } from "playwright"
 
 export interface JobScrapingResult {
   content: string
   hasAuthIssue: boolean
   error?: string
+}
+
+const AUTH_SELECTORS = [
+  'input[type="password"]',
+  'button[type="submit"]:has-text("Sign in")',
+  'button[type="submit"]:has-text("Log in")',
+  'button[type="submit"]:has-text("Login")',
+  'a[href*="login"]',
+  'a[href*="signin"]',
+  'form[action*="login"]',
+  'form[action*="signin"]',
+  ".login-form",
+  ".signin-form",
+  '[data-testid*="login"]',
+  '[data-testid*="signin"]',
+]
+
+const AUTH_TEXT_INDICATORS = [
+  "sign in to continue",
+  "log in to view",
+  "please sign in",
+  "authentication required",
+  "login required",
+  "you must be signed in",
+  "access restricted",
+  "please log in",
+]
+
+const CONTENT_SELECTORS = [
+  '[data-testid="job-description"]',
+  ".job-description",
+  ".job-details",
+  ".job-content",
+  ".description",
+  '[class*="description"]',
+  '[class*="job-detail"]',
+  "main",
+  ".content",
+  "article",
+]
+
+const BROWSER_CONFIG = {
+  headless: true,
+  userAgent:
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+}
+
+const TIMEOUTS = {
+  navigation: 10000,
+  dynamicContent: 2000,
+}
+
+const CONTENT_LIMITS = {
+  minLength: 100,
+  maxLength: 5000,
 }
 
 export async function scrapeJobContent(
@@ -12,67 +67,22 @@ export async function scrapeJobContent(
   let browser
 
   try {
-    browser = await chromium.launch({ headless: true })
+    browser = await chromium.launch({ headless: BROWSER_CONFIG.headless })
     const context = await browser.newContext({
-      userAgent:
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+      userAgent: BROWSER_CONFIG.userAgent,
     })
     const page = await context.newPage()
 
-    // Set a reasonable timeout
-    await page.goto(jobUrl, { waitUntil: "domcontentloaded", timeout: 10000 })
+    await page.goto(jobUrl, {
+      waitUntil: "domcontentloaded",
+      timeout: TIMEOUTS.navigation,
+    })
 
-    // Wait a bit for dynamic content to load
-    await page.waitForTimeout(2000)
+    await page.waitForTimeout(TIMEOUTS.dynamicContent)
 
-    // Check for common authentication indicators
-    const authSelectors = [
-      'input[type="password"]',
-      'button[type="submit"]:has-text("Sign in")',
-      'button[type="submit"]:has-text("Log in")',
-      'button[type="submit"]:has-text("Login")',
-      'a[href*="login"]',
-      'a[href*="signin"]',
-      'form[action*="login"]',
-      'form[action*="signin"]',
-      ".login-form",
-      ".signin-form",
-      '[data-testid*="login"]',
-      '[data-testid*="signin"]',
-    ]
+    const authIssue = await detectAuthenticationIssues(page, jobUrl)
 
-    // Check for text-based auth indicators
-    const pageText = (await page.textContent("body")) || ""
-    const authTextIndicators = [
-      "sign in to continue",
-      "log in to view",
-      "please sign in",
-      "authentication required",
-      "login required",
-      "you must be signed in",
-      "access restricted",
-      "please log in",
-    ]
-
-    const hasAuthSelector =
-      (await page.locator(authSelectors.join(", ")).count()) > 0
-    const hasAuthText = authTextIndicators.some((indicator) =>
-      pageText.toLowerCase().includes(indicator.toLowerCase())
-    )
-
-    // Check if we're redirected to a different domain (common for auth)
-    const currentUrl = page.url()
-    const originalDomain = new URL(jobUrl).hostname
-    const currentDomain = new URL(currentUrl).hostname
-    const isRedirectedToAuth =
-      originalDomain !== currentDomain &&
-      (currentUrl.includes("login") ||
-        currentUrl.includes("signin") ||
-        currentUrl.includes("auth"))
-
-    const hasAuthIssue = hasAuthSelector || hasAuthText || isRedirectedToAuth
-
-    if (hasAuthIssue) {
+    if (authIssue.hasAuthIssue) {
       return {
         content: "",
         hasAuthIssue: true,
@@ -80,42 +90,7 @@ export async function scrapeJobContent(
       }
     }
 
-    // Extract job content from common selectors
-    const contentSelectors = [
-      '[data-testid="job-description"]',
-      ".job-description",
-      ".job-details",
-      ".job-content",
-      ".description",
-      '[class*="description"]',
-      '[class*="job-detail"]',
-      "main",
-      ".content",
-      "article",
-    ]
-
-    let content = ""
-    for (const selector of contentSelectors) {
-      const element = page.locator(selector).first()
-      if ((await element.count()) > 0) {
-        content = (await element.textContent()) || ""
-        if (content.trim().length > 100) {
-          break
-        }
-      }
-    }
-
-    // Fallback to body content if specific selectors don't work
-    if (!content || content.trim().length < 100) {
-      content = (await page.textContent("body")) || ""
-    }
-
-    // Clean up the content
-    content = content
-      .replace(/\s+/g, " ")
-      .replace(/\n\s*\n/g, "\n")
-      .trim()
-      .substring(0, 5000) // Limit content length
+    const content = await extractJobContent(page)
 
     return {
       content,
@@ -124,14 +99,14 @@ export async function scrapeJobContent(
   } catch (error) {
     console.error("Job scraping error:", error)
 
-    // Check if error might be due to auth requirements
     const errorMessage =
       error instanceof Error ? error.message.toLowerCase() : ""
-    const isLikelyAuthError =
-      errorMessage.includes("timeout") ||
-      errorMessage.includes("blocked") ||
-      errorMessage.includes("forbidden") ||
-      errorMessage.includes("unauthorized")
+    const isLikelyAuthError = [
+      "timeout",
+      "blocked",
+      "forbidden",
+      "unauthorized",
+    ].some((term) => errorMessage.includes(term))
 
     return {
       content: "",
@@ -143,4 +118,54 @@ export async function scrapeJobContent(
       await browser.close()
     }
   }
+}
+
+async function detectAuthenticationIssues(page: Page, jobUrl: string) {
+  const pageText = (await page.textContent("body")) || ""
+
+  const hasAuthSelector =
+    (await page.locator(AUTH_SELECTORS.join(", ")).count()) > 0
+  const hasAuthText = AUTH_TEXT_INDICATORS.some((indicator) =>
+    pageText.toLowerCase().includes(indicator.toLowerCase())
+  )
+
+  const currentUrl = page.url()
+  const originalDomain = new URL(jobUrl).hostname
+  const currentDomain = new URL(currentUrl).hostname
+  const isRedirectedToAuth =
+    originalDomain !== currentDomain &&
+    (currentUrl.includes("login") ||
+      currentUrl.includes("signin") ||
+      currentUrl.includes("auth"))
+
+  return {
+    hasAuthIssue: hasAuthSelector || hasAuthText || isRedirectedToAuth,
+  }
+}
+
+async function extractJobContent(page: Page): Promise<string> {
+  let content = ""
+
+  // Try specific selectors first
+  for (const selector of CONTENT_SELECTORS) {
+    const element = page.locator(selector).first()
+    if ((await element.count()) > 0) {
+      content = (await element.textContent()) || ""
+      if (content.trim().length > CONTENT_LIMITS.minLength) {
+        break
+      }
+    }
+  }
+
+  // Fallback to body content
+  if (!content || content.trim().length < CONTENT_LIMITS.minLength) {
+    content = (await page.textContent("body")) || ""
+  }
+
+  // Clean and limit content
+  return content
+    .replace(/\s+/g, " ")
+    .replace(/\n\s*\n/g, "\n")
+    .trim()
+    .substring(0, CONTENT_LIMITS.maxLength)
 }
