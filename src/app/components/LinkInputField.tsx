@@ -1,14 +1,28 @@
 /**
- * Input field for job links with validation
- * Accepts URLs or "general" with real-time validation feedback
+ * Link Input Field Component
+ *
+ * A validated input field for job posting URLs with real-time feedback. Accepts valid URLs
+ * or the keyword "general" for creating versatile cover letters. Features visual validation
+ * states and accessibility support.
+ *
+ * @component
+ * @example
+ * ```tsx
+ * <LinkInputField
+ *   linkUrl={linkUrl}
+ *   onLinkChange={handleLinkChange}
+ *   isValid={isValidInput(linkUrl)}
+ * />
+ * ```
+ *
+ * @fileoverview Job link input component with validation
+ * @version 1.0.0
+ * @author CoverMe Team
  */
-import { styles, svgPaths } from "../styles"
 
-interface LinkInputFieldProps {
-  linkUrl: string
-  onLinkChange: (event: React.ChangeEvent<HTMLInputElement>) => void
-  isValid: boolean
-}
+import { styles } from "../styles"
+import { SVG_PATHS } from "../styles/constants"
+import type { LinkInputFieldProps } from "../types/interfaces"
 
 export default function LinkInputField({
   linkUrl,
@@ -23,8 +37,8 @@ export default function LinkInputField({
       <div className="flex items-start space-x-4">
         <div
           className={`${styles.statusIndicator} ${
-            hasInput && isValid 
-              ? styles.statusIndicatorComplete 
+            hasInput && isValid
+              ? styles.statusIndicatorComplete
               : styles.statusIndicatorIncomplete
           }`}
         >
@@ -36,7 +50,7 @@ export default function LinkInputField({
             >
               <path
                 fillRule="evenodd"
-                d={svgPaths.checkmark}
+                d={SVG_PATHS.CHECKMARK}
                 clipRule="evenodd"
               />
             </svg>
@@ -48,15 +62,11 @@ export default function LinkInputField({
               viewBox="0 0 20 20"
               style={{ color: "var(--error)" }}
             >
-              <path
-                fillRule="evenodd"
-                d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                clipRule="evenodd"
-              />
+              <path fillRule="evenodd" d={SVG_PATHS.CLOSE} clipRule="evenodd" />
             </svg>
           )}
         </div>
-        
+
         <div className="flex-1">
           <div className={styles.inputGroup}>
             <label className={styles.label}>2. Add job link</label>
@@ -65,17 +75,20 @@ export default function LinkInputField({
               placeholder='Paste job URL or type "general" for a general cover letter'
               value={linkUrl}
               onChange={onLinkChange}
-              className={`${styles.input} ${showValidation ? styles.inputError : ''}`}
+              className={`${styles.input} ${
+                showValidation ? styles.inputError : ""
+              }`}
             />
             {showValidation && (
-              <div className={styles.helperText} style={{ color: "var(--error)" }}>
-                Please enter a valid URL or type "general"
+              <div
+                className={styles.helperText}
+                style={{ color: "var(--error)" }}
+              >
+                Please enter a valid URL or type &quot;general&quot;
               </div>
             )}
             {hasInput && isValid && (
-              <div className={styles.helperText}>
-                ✓ Job link is valid
-              </div>
+              <div className={styles.helperText}>✓ Job link is valid</div>
             )}
           </div>
         </div>

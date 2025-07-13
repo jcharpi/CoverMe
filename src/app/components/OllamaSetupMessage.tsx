@@ -1,7 +1,24 @@
 /**
- * Component to display setup instructions when no Ollama models are available
+ * Ollama Setup Message Component
+ *
+ * A comprehensive setup guide that displays when no Ollama models are detected.
+ * Provides step-by-step instructions for installing Ollama, downloading models,
+ * and getting started with the application. Features links to official resources
+ * and recommended model suggestions.
+ *
+ * @component
+ * @example
+ * ```tsx
+ * {availableModels.length === 0 && <OllamaSetupMessage />}
+ * ```
+ *
+ * @fileoverview Ollama installation and setup guide component
+ * @version 1.0.0
+ * @author CoverMe Team
  */
+
 import { styles } from "../styles"
+import { SVG_PATHS, APP_CONSTANTS } from "../styles/constants"
 
 export default function OllamaSetupMessage() {
   return (
@@ -18,7 +35,7 @@ export default function OllamaSetupMessage() {
               strokeLinecap="round"
               strokeLinejoin="round"
               strokeWidth={1.5}
-              d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+              d={SVG_PATHS.MONITOR}
             />
           </svg>
         </div>
@@ -58,10 +75,11 @@ export default function OllamaSetupMessage() {
               After installing Ollama, run this command in your terminal:
             </p>
             <code className="block bg-[var(--background)] px-3 py-2 rounded text-sm font-mono text-[var(--text-primary)] border">
-              ollama pull gemma3:1b
+              ollama pull {APP_CONSTANTS.RECOMMENDED_MODELS[0]}
             </code>
             <p className="text-xs text-[var(--text-tertiary)] mt-1">
-              You can also try: deepseek-r1, phi4-mini, or llama3.2
+              You can also try:{" "}
+              {APP_CONSTANTS.RECOMMENDED_MODELS.slice(1).join(", ")}
             </p>
           </div>
 

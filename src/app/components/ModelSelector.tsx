@@ -1,14 +1,27 @@
 /**
- * Dropdown component for selecting AI models
- * Displays available Ollama models and handles model selection
+ * Model Selector Component
+ *
+ * A dropdown component for selecting available Ollama AI models. Displays in the header
+ * and allows users to choose which model to use for cover letter generation. Automatically
+ * hides when no models are available.
+ *
+ * @component
+ * @example
+ * ```tsx
+ * <ModelSelector
+ *   availableModels={availableModels}
+ *   selectedModel={selectedModel}
+ *   onModelChange={handleModelChange}
+ * />
+ * ```
+ *
+ * @fileoverview AI model selection dropdown component
+ * @version 1.0.0
+ * @author CoverMe Team
  */
-import { styles } from "../styles"
 
-interface ModelSelectorProps {
-  availableModels: string[]
-  selectedModel: string
-  onModelChange: (event: React.ChangeEvent<HTMLSelectElement>) => void
-}
+import { styles } from "../styles"
+import type { ModelSelectorProps } from "../types/interfaces"
 
 export default function ModelSelector({
   availableModels,

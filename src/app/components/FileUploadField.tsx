@@ -1,13 +1,26 @@
 /**
- * File upload component for resume files
- * Handles .txt file upload with visual feedback and validation
+ * File Upload Field Component
+ *
+ * A modern drag-and-drop file upload component for resume files. Features visual feedback,
+ * validation states, and accessibility support. Accepts only .txt files up to 10MB.
+ *
+ * @component
+ * @example
+ * ```tsx
+ * <FileUploadField
+ *   resumeFile={resumeFile}
+ *   onFileUpload={handleFileUpload}
+ * />
+ * ```
+ *
+ * @fileoverview Resume file upload component with validation
+ * @version 1.0.0
+ * @author CoverMe Team
  */
-import { styles, svgPaths } from "../styles"
 
-interface FileUploadFieldProps {
-  resumeFile: File | null
-  onFileUpload: (event: React.ChangeEvent<HTMLInputElement>) => void
-}
+import { styles } from "../styles"
+import { SVG_PATHS, APP_CONSTANTS } from "../styles/constants"
+import type { FileUploadFieldProps } from "../types/interfaces"
 
 export default function FileUploadField({
   resumeFile,
@@ -18,7 +31,9 @@ export default function FileUploadField({
       <div className="flex items-start space-x-4">
         <div
           className={`${styles.statusIndicator} ${
-            resumeFile ? styles.statusIndicatorComplete : styles.statusIndicatorIncomplete
+            resumeFile
+              ? styles.statusIndicatorComplete
+              : styles.statusIndicatorIncomplete
           }`}
         >
           {resumeFile && (
@@ -29,16 +44,20 @@ export default function FileUploadField({
             >
               <path
                 fillRule="evenodd"
-                d={svgPaths.checkmark}
+                d={SVG_PATHS.CHECKMARK}
                 clipRule="evenodd"
               />
             </svg>
           )}
         </div>
-        
+
         <div className="flex-1">
           <label className={styles.label}>1. Upload your resume</label>
-          <div className={`${styles.fileUpload} ${resumeFile ? styles.fileUploadActive : ''}`}>
+          <div
+            className={`${styles.fileUpload} ${
+              resumeFile ? styles.fileUploadActive : ""
+            }`}
+          >
             <div className={styles.fileUploadContent}>
               <svg
                 className={styles.uploadIcon}
@@ -50,21 +69,36 @@ export default function FileUploadField({
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2}
-                  d={svgPaths.upload}
+                  d={SVG_PATHS.UPLOAD}
                 />
               </svg>
               <div>
-                <div className={resumeFile ? styles.fileUploadTextActive : styles.fileUploadText}>
-                  {resumeFile ? resumeFile.name : "Choose a file or drag and drop"}
+                <div
+                  className={
+                    resumeFile
+                      ? styles.fileUploadTextActive
+                      : styles.fileUploadText
+                  }
+                >
+                  {resumeFile
+                    ? resumeFile.name
+                    : "Choose a file or drag and drop"}
                 </div>
-                <div className={resumeFile ? styles.fileUploadSubtextActive : styles.fileUploadSubtext}>
-                  TXT files only, up to 10MB
+                <div
+                  className={
+                    resumeFile
+                      ? styles.fileUploadSubtextActive
+                      : styles.fileUploadSubtext
+                  }
+                >
+                  {APP_CONSTANTS.ACCEPTED_FILE_TYPES.join(", ")} files only, up
+                  to {APP_CONSTANTS.MAX_FILE_SIZE_MB}MB
                 </div>
               </div>
             </div>
             <input
               type="file"
-              accept=".txt"
+              accept={APP_CONSTANTS.ACCEPTED_FILE_TYPES.join(",")}
               onChange={onFileUpload}
               className={styles.fileInput}
             />

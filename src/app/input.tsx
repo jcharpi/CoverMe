@@ -1,6 +1,31 @@
 /**
- * Main input component for the CoverMe application
- * Handles resume upload, job link input, writing sample, and cover letter generation
+ * Main Input Component
+ *
+ * The primary interface for cover letter generation in the CoverMe application.
+ * Manages the complete user workflow from file upload to AI generation, featuring:
+ *
+ * - Step-by-step form with visual progress indicators
+ * - Resume file upload with validation (TXT files only)
+ * - Job link input with real-time URL validation
+ * - Optional writing sample for style matching
+ * - AI model selection and processing states
+ * - Ollama setup guidance when no models are available
+ *
+ * State Management:
+ * - File upload state and validation
+ * - Form input values and validation states
+ * - AI processing status and error handling
+ * - Model availability and selection
+ *
+ * @component
+ * @example
+ * ```tsx
+ * <Input />
+ * ```
+ *
+ * @fileoverview Main cover letter generation interface component
+ * @version 1.0.0
+ * @author CoverMe Team
  */
 "use client"
 
@@ -104,13 +129,15 @@ export default function Input() {
   }
 
   // Show setup message if no models are available
-  if (0 === 0) {
+  if (availableModels.length === 0) {
     return (
       <div className={styles.container}>
         <header className={styles.header}>
           <div>
             <h1 className={styles.title}>CoverMe</h1>
-            <p className={styles.subtitle}>Generate personalized cover letters with AI</p>
+            <p className={styles.subtitle}>
+              Generate personalized cover letters with AI
+            </p>
           </div>
         </header>
         <main className={styles.mainContent}>
@@ -126,7 +153,9 @@ export default function Input() {
       <header className={styles.header}>
         <div>
           <h1 className={styles.title}>CoverMe</h1>
-          <p className={styles.subtitle}>Generate personalized cover letters with AI</p>
+          <p className={styles.subtitle}>
+            Generate personalized cover letters with AI
+          </p>
         </div>
         <ModelSelector
           availableModels={availableModels}

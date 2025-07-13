@@ -1,15 +1,28 @@
 /**
- * Writing sample input section with cover letter generation
- * Provides textarea for writing sample input and trigger for cover letter generation
+ * Writing Sample Section Component
+ *
+ * An optional input section for users to provide writing samples that help the AI match
+ * their personal writing style. Features a large textarea, processing states, and an
+ * action button to generate the cover letter.
+ *
+ * @component
+ * @example
+ * ```tsx
+ * <WritingSampleSection
+ *   writingSample={writingSample}
+ *   onWritingChange={handleWritingChange}
+ *   onCreateClick={handleCreate}
+ *   isProcessing={isProcessing}
+ * />
+ * ```
+ *
+ * @fileoverview Writing sample input and cover letter generation component
+ * @version 1.0.0
+ * @author CoverMe Team
  */
-import { styles } from "../styles"
 
-interface WritingSampleSectionProps {
-  writingSample: string
-  onWritingChange: (event: React.ChangeEvent<HTMLTextAreaElement>) => void
-  onCreateClick: () => void
-  isProcessing: boolean
-}
+import { styles } from "../styles"
+import type { WritingSampleSectionProps } from "../types/interfaces"
 
 export default function WritingSampleSection({
   writingSample,
@@ -20,12 +33,13 @@ export default function WritingSampleSection({
   return (
     <div className={styles.card}>
       <div className="flex items-start space-x-4">
-        <div className={styles.statusIndicatorIncomplete}>
-        </div>
-        
+        <div className={styles.statusIndicatorIncomplete}></div>
+
         <div className="flex-1">
           <div className={styles.inputGroup}>
-            <label className={styles.label}>3. Add writing sample (optional)</label>
+            <label className={styles.label}>
+              3. Add writing sample (optional)
+            </label>
             <textarea
               value={writingSample}
               onChange={onWritingChange}
@@ -33,10 +47,11 @@ export default function WritingSampleSection({
               className={styles.textarea}
             />
             <div className={styles.helperText}>
-              Help the AI match your writing style by providing examples of your work
+              Help the AI match your writing style by providing examples of your
+              work
             </div>
           </div>
-          
+
           <div className={styles.buttonContainer}>
             <button
               className={styles.buttonPrimary}

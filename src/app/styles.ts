@@ -1,70 +1,198 @@
+/**
+ * Component Style Definitions
+ *
+ * Centralized Tailwind CSS class definitions for all CoverMe components.
+ * Organized by component type and functionality for easy maintenance and consistency.
+ * Uses CSS custom properties for theming and responsive design patterns.
+ *
+ * @fileoverview Tailwind CSS class definitions for component styling
+ * @version 1.0.0
+ * @author CoverMe Team
+ */
+
+import { ANIMATIONS } from "./styles/constants"
+
+/**
+ * Tailwind CSS class combinations for consistent component styling
+ */
 export const styles = {
-  // Layout
+  // =============================================================================
+  // LAYOUT & STRUCTURE
+  // =============================================================================
+
+  /** Main application container with full height and overflow control */
   container: "h-screen bg-[var(--background)] font-sans overflow-hidden",
+
+  /** Application header with responsive padding and flex layout */
   header: "flex items-center justify-between p-4 sm:p-6",
-  mainContent: "flex flex-col max-w-4xl mx-auto px-6 sm:px-8 space-y-6 pb-8 overflow-hidden",
 
-  // Typography
-  title: "text-3xl sm:text-4xl font-bold text-[var(--text-primary)] tracking-tight",
-  subtitle: "text-lg text-[var(--text-secondary)] mt-2",
-  sectionHeading: "text-xl font-semibold text-[var(--text-primary)] mb-4",
-  label: "text-md font-medium text-[var(--text-primary)] mb-2 block",
-  helperText: "text-sm text-[var(--text-secondary)] mt-1",
+  /** Main content area with max width, centering, and spacing */
+  mainContent:
+    "flex flex-col max-w-4xl mx-auto px-6 sm:px-8 space-y-6 pb-8 overflow-hidden",
 
-  // Cards and surfaces
-  card: "bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius-lg)] p-6 shadow-[var(--shadow-md)]",
-  cardCompact: "bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius-md)] p-4 shadow-[var(--shadow-sm)]",
-
-  // Form Fields
+  /** Form field container with consistent vertical spacing */
   fieldContainer: "space-y-6",
+
+  /** Input group with tight spacing for label-input pairs */
   inputGroup: "space-y-2",
 
-  // Status indicators
-  statusIndicator: "w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-200",
-  statusIndicatorComplete: "bg-[var(--success)] border-[var(--success)] text-white",
-  statusIndicatorIncomplete: "border-[var(--border)] text-[var(--text-tertiary)]",
+  // =============================================================================
+  // TYPOGRAPHY
+  // =============================================================================
+
+  /** Primary application title with responsive sizing */
+  title:
+    "text-3xl sm:text-4xl font-bold text-[var(--text-primary)] tracking-tight",
+
+  /** Subtitle text with secondary color */
+  subtitle: "text-lg text-[var(--text-secondary)] mt-2",
+
+  /** Section headings with consistent spacing */
+  sectionHeading: "text-xl font-semibold text-[var(--text-primary)] mb-4",
+
+  /** Form field labels */
+  label: "text-md font-medium text-[var(--text-primary)] mb-2 block",
+
+  /** Helper and validation text */
+  helperText: "text-sm text-[var(--text-secondary)] mt-1",
+
+  // =============================================================================
+  // CARDS & SURFACES
+  // =============================================================================
+
+  /** Primary card component with shadow and border */
+  card: "bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius-lg)] p-6 shadow-[var(--shadow-md)]",
+
+  /** Compact card variant for smaller content */
+  cardCompact:
+    "bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius-md)] p-4 shadow-[var(--shadow-sm)]",
+
+  // =============================================================================
+  // STATUS INDICATORS
+  // =============================================================================
+
+  /** Base status indicator circle */
+  statusIndicator: `w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-${ANIMATIONS.TRANSITION_DURATION}`,
+
+  /** Completed status indicator with success styling */
+  statusIndicatorComplete:
+    "bg-[var(--success)] border-[var(--success)] text-white",
+
+  /** Incomplete status indicator with neutral styling */
+  statusIndicatorIncomplete:
+    "border-[var(--border)] text-[var(--text-tertiary)]",
+
+  /** Checkmark icon sizing */
   checkIcon: "w-4 h-4",
 
-  // File upload
-  fileUpload: "group relative border-2 border-dashed border-[var(--border)] rounded-[var(--radius-lg)] p-8 text-center cursor-pointer transition-all duration-200 hover:border-[var(--primary)] hover:bg-[var(--primary-light)]",
+  // =============================================================================
+  // FILE UPLOAD COMPONENTS
+  // =============================================================================
+
+  /** Drag-and-drop file upload area with hover effects */
+  fileUpload: `group relative border-2 border-dashed border-[var(--border)] rounded-[var(--radius-lg)] p-8 text-center cursor-pointer transition-all duration-${ANIMATIONS.TRANSITION_DURATION} hover:border-[var(--primary)] hover:bg-[var(--primary-light)]`,
+
+  /** Active state for file upload when file is selected */
   fileUploadActive: "border-[var(--primary)] bg-[var(--primary-light)]",
+
+  /** Content layout within file upload area */
   fileUploadContent: "flex flex-col items-center space-y-3",
-  fileUploadText: "font-medium text-[var(--text-primary)] group-hover:text-black transition-colors",
+
+  /** File upload text with hover color change */
+  fileUploadText:
+    "font-medium text-[var(--text-primary)] group-hover:text-black transition-colors",
+
+  /** Active file upload text when file is selected */
   fileUploadTextActive: "font-medium text-black transition-colors",
-  fileUploadSubtext: "text-sm text-[var(--text-secondary)] group-hover:text-gray-700 transition-colors",
+
+  /** File upload subtext with hover color change */
+  fileUploadSubtext:
+    "text-sm text-[var(--text-secondary)] group-hover:text-gray-700 transition-colors",
+
+  /** Active file upload subtext when file is selected */
   fileUploadSubtextActive: "text-sm text-gray-700 transition-colors",
-  uploadIcon: "w-8 h-8 text-[var(--text-secondary)] group-hover:text-[var(--primary)] transition-colors",
+
+  /** Upload icon with hover color transition */
+  uploadIcon:
+    "w-8 h-8 text-[var(--text-secondary)] group-hover:text-[var(--primary)] transition-colors",
+
+  /** Hidden file input overlay */
   fileInput: "absolute inset-0 w-full h-full opacity-0 cursor-pointer",
 
-  // Text inputs
-  input: "w-full px-4 py-3 bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius-md)] text-[var(--text-primary)] placeholder-[var(--text-tertiary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-[var(--border-focus)] transition-all duration-200",
+  // =============================================================================
+  // FORM INPUTS
+  // =============================================================================
+
+  /** Standard text input with focus states */
+  input: `w-full px-4 py-3 bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius-md)] text-[var(--text-primary)] placeholder-[var(--text-tertiary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-[var(--border-focus)] transition-all duration-${ANIMATIONS.TRANSITION_DURATION}`,
+
+  /** Error state for input fields */
   inputError: "border-[var(--error)] focus:ring-[var(--error)]",
 
-  // Writing section
+  /** Select dropdown styling */
+  select: `w-full sm:w-auto min-w-[200px] px-4 py-2 bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius-md)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-[var(--border-focus)] transition-all duration-${ANIMATIONS.TRANSITION_DURATION}`,
+
+  // =============================================================================
+  // TEXTAREA COMPONENTS
+  // =============================================================================
+
+  /** Compact textarea for writing samples */
+  textarea: `w-full h-[25vh] bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius-lg)] px-4 py-3 text-[var(--text-primary)] placeholder-[var(--text-tertiary)] resize-none focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-[var(--border-focus)] transition-all duration-${ANIMATIONS.TRANSITION_DURATION} custom-scrollbar`,
+
+  /** Large textarea for cover letter editing */
+  textareaLarge: `w-full h-[70vh] bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius-lg)] px-4 py-3 text-[var(--text-primary)] placeholder-[var(--text-tertiary)] resize-none focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-[var(--border-focus)] transition-all duration-${ANIMATIONS.TRANSITION_DURATION} custom-scrollbar`,
+
+  // =============================================================================
+  // WRITING SECTION
+  // =============================================================================
+
+  /** Writing section layout container */
   writingSection: "space-y-4",
+
+  /** Writing textarea container */
   writingContainer: "w-full",
-  textarea: "w-full h-[25vh] bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius-lg)] px-4 py-3 text-[var(--text-primary)] placeholder-[var(--text-tertiary)] resize-none focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-[var(--border-focus)] transition-all duration-200 custom-scrollbar",
-  textareaLarge: "w-full h-[70vh] bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius-lg)] px-4 py-3 text-[var(--text-primary)] placeholder-[var(--text-tertiary)] resize-none focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-[var(--border-focus)] transition-all duration-200 custom-scrollbar",
 
-  // Buttons
+  // =============================================================================
+  // BUTTONS
+  // =============================================================================
+
+  /** Button container with responsive layout */
   buttonContainer: "flex flex-col sm:flex-row gap-3 justify-center mt-6",
-  buttonPrimary: "inline-flex items-center justify-center px-6 py-3 bg-[var(--primary)] text-white font-medium rounded-[var(--radius-md)] hover:bg-[var(--primary-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer",
-  buttonSecondary: "inline-flex items-center justify-center px-6 py-3 bg-[var(--surface)] text-[var(--text-primary)] font-medium border border-[var(--border)] rounded-[var(--radius-md)] hover:bg-[var(--surface-secondary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 transition-all duration-200 cursor-pointer",
-  buttonText: "text-[var(--primary)] font-medium hover:text-[var(--primary-hover)] transition-colors duration-200 cursor-pointer",
 
-  // Loading states
-  spinner: "animate-spin w-5 h-5 border-2 border-white border-t-transparent rounded-full",
+  /** Primary action button with full styling */
+  buttonPrimary: `inline-flex items-center justify-center px-6 py-3 bg-[var(--primary)] text-white font-medium rounded-[var(--radius-md)] hover:bg-[var(--primary-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 transition-all duration-${ANIMATIONS.TRANSITION_DURATION} disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer`,
 
-  // Model selector
-  select: "w-full sm:w-auto min-w-[200px] px-4 py-2 bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius-md)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-[var(--border-focus)] transition-all duration-200",
+  /** Secondary button with outline styling */
+  buttonSecondary: `inline-flex items-center justify-center px-6 py-3 bg-[var(--surface)] text-[var(--text-primary)] font-medium border border-[var(--border)] rounded-[var(--radius-md)] hover:bg-[var(--surface-secondary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 transition-all duration-${ANIMATIONS.TRANSITION_DURATION} cursor-pointer`,
 
-  // Progress indicators
+  /** Text-only button styling */
+  buttonText: `text-[var(--primary)] font-medium hover:text-[var(--primary-hover)] transition-colors duration-${ANIMATIONS.TRANSITION_DURATION} cursor-pointer`,
+
+  // =============================================================================
+  // LOADING & PROGRESS
+  // =============================================================================
+
+  /** Spinning loader animation */
+  spinner:
+    "animate-spin w-5 h-5 border-2 border-white border-t-transparent rounded-full",
+
+  /** Progress indicator container */
   progressContainer: "space-y-2",
+
+  /** Progress bar background */
   progressBar: "w-full bg-[var(--surface-secondary)] rounded-full h-2",
-  progressFill: "bg-[var(--primary)] h-2 rounded-full transition-all duration-300",
+
+  /** Progress bar fill with animation */
+  progressFill: `bg-[var(--primary)] h-2 rounded-full transition-all duration-${ANIMATIONS.SLOW_TRANSITION}`,
+
+  /** Progress text styling */
   progressText: "text-sm text-[var(--text-secondary)] text-center",
 } as const
 
+/**
+ * @deprecated Use SVG_PATHS from constants.ts instead
+ * Legacy SVG paths - will be removed in next version
+ */
 export const svgPaths = {
   checkmark:
     "M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z",

@@ -86,7 +86,7 @@ ${writingSampleSection}
 ${jobSection}
 
 1. STRUCTURE: Write EXACTLY 3 paragraphs (no more, no less)
-2. LENGTH: 300-400 words total
+2. LENGTH: about 300-350 words total
 3. FORMAT: Write only the cover letter body (no header)
 4. PARAGRAPH BREAKDOWN:
    - Paragraph 1: Opening (state intent, position, brief introduction)
