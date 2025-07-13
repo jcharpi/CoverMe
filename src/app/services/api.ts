@@ -2,7 +2,7 @@
  * API service for backend communication
  * Handles all HTTP requests to the Express server including health checks and cover letter generation
  */
-const API_BASE_URL = "http://localhost:3001"
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || ""
 
 export interface CoverLetterResult {
   summary: string
