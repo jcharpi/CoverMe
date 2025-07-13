@@ -1,14 +1,14 @@
 export const styles = {
   // Layout
-  container: "min-h-screen bg-[var(--background)] font-sans",
-  header: "flex items-center justify-between p-6 sm:p-8",
-  mainContent: "flex flex-col max-w-4xl mx-auto px-6 sm:px-8 space-y-8 pb-16",
+  container: "h-screen bg-[var(--background)] font-sans overflow-hidden",
+  header: "flex items-center justify-between p-4 sm:p-6",
+  mainContent: "flex flex-col max-w-4xl mx-auto px-6 sm:px-8 space-y-6 pb-8 overflow-hidden",
 
   // Typography
   title: "text-3xl sm:text-4xl font-bold text-[var(--text-primary)] tracking-tight",
   subtitle: "text-lg text-[var(--text-secondary)] mt-2",
   sectionHeading: "text-xl font-semibold text-[var(--text-primary)] mb-4",
-  label: "text-sm font-medium text-[var(--text-primary)] mb-2 block",
+  label: "text-md font-medium text-[var(--text-primary)] mb-2 block",
   helperText: "text-sm text-[var(--text-secondary)] mt-1",
 
   // Cards and surfaces
@@ -43,14 +43,14 @@ export const styles = {
   // Writing section
   writingSection: "space-y-4",
   writingContainer: "w-full",
-  textarea: "w-full h-[50vh] bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius-lg)] px-4 py-3 text-[var(--text-primary)] placeholder-[var(--text-tertiary)] resize-none focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-[var(--border-focus)] transition-all duration-200 custom-scrollbar",
+  textarea: "w-full h-[25vh] bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius-lg)] px-4 py-3 text-[var(--text-primary)] placeholder-[var(--text-tertiary)] resize-none focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-[var(--border-focus)] transition-all duration-200 custom-scrollbar",
   textareaLarge: "w-full h-[70vh] bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius-lg)] px-4 py-3 text-[var(--text-primary)] placeholder-[var(--text-tertiary)] resize-none focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-[var(--border-focus)] transition-all duration-200 custom-scrollbar",
 
   // Buttons
-  buttonContainer: "flex flex-col sm:flex-row gap-3 justify-center mt-8",
-  buttonPrimary: "inline-flex items-center justify-center px-6 py-3 bg-[var(--primary)] text-white font-medium rounded-[var(--radius-md)] hover:bg-[var(--primary-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed",
-  buttonSecondary: "inline-flex items-center justify-center px-6 py-3 bg-[var(--surface)] text-[var(--text-primary)] font-medium border border-[var(--border)] rounded-[var(--radius-md)] hover:bg-[var(--surface-secondary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 transition-all duration-200",
-  buttonText: "text-[var(--primary)] font-medium hover:text-[var(--primary-hover)] transition-colors duration-200",
+  buttonContainer: "flex flex-col sm:flex-row gap-3 justify-center mt-6",
+  buttonPrimary: "inline-flex items-center justify-center px-6 py-3 bg-[var(--primary)] text-white font-medium rounded-[var(--radius-md)] hover:bg-[var(--primary-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer",
+  buttonSecondary: "inline-flex items-center justify-center px-6 py-3 bg-[var(--surface)] text-[var(--text-primary)] font-medium border border-[var(--border)] rounded-[var(--radius-md)] hover:bg-[var(--surface-secondary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 transition-all duration-200 cursor-pointer",
+  buttonText: "text-[var(--primary)] font-medium hover:text-[var(--primary-hover)] transition-colors duration-200 cursor-pointer",
 
   // Loading states
   spinner: "animate-spin w-5 h-5 border-2 border-white border-t-transparent rounded-full",

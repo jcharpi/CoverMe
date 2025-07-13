@@ -102,8 +102,28 @@ app.post(
       const summary: string = response.message.content
 
       const cleanedSummary = removeThinkingTags(summary)
+
+      // Hardcoded header
+      const header = `Applicant Info:
+Address
+City, ST Zip Code
+Date
+
+Recipient Info:
+Name
+Job Title
+Company/Organization Name
+Address
+City, ST Zip Code
+
+`
+
+      // Combine header + body + signature
+      const finalCoverLetter =
+        header + cleanedSummary + "\n\nSincerely,\n[Your Name]"
+
       res.json({
-        summary: cleanedSummary,
+        summary: finalCoverLetter,
         hasAuthIssue: hasAuthIssue,
       })
     } catch (error: unknown) {
