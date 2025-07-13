@@ -21,14 +21,13 @@ export const styles = {
   // =============================================================================
 
   /** Main application container with full height and overflow control */
-  container: "h-screen bg-[var(--background)] font-sans overflow-hidden",
+  container: "min-h-screen bg-[var(--background)] font-sans",
 
   /** Application header with responsive padding and flex layout */
   header: "flex items-center justify-between p-4 sm:p-6",
 
   /** Main content area with max width, centering, and spacing */
-  mainContent:
-    "flex flex-col max-w-4xl mx-auto px-6 sm:px-8 space-y-6 pb-8 overflow-hidden",
+  mainContent: "flex flex-col max-w-4xl mx-auto px-6 sm:px-8 space-y-6 pb-8",
 
   /** Form field container with consistent vertical spacing */
   fieldContainer: "space-y-6",
@@ -66,6 +65,29 @@ export const styles = {
   /** Compact card variant for smaller content */
   cardCompact:
     "bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius-md)] p-4 shadow-[var(--shadow-sm)]",
+
+  // =============================================================================
+  // WARNING COMPONENTS
+  // =============================================================================
+
+  /** Authentication warning container with appropriate spacing and styling */
+  authWarning:
+    "bg-[var(--warning-light)] border border-[var(--warning)] rounded-[var(--radius-md)] p-4 mb-6",
+
+  /** Warning content layout with icon and text */
+  authWarningContent: "flex items-start space-x-3",
+
+  /** Warning icon styling */
+  authWarningIcon: "w-5 h-5 text-[var(--warning)] flex-shrink-0 mt-0.5",
+
+  /** Warning text container */
+  authWarningTextContainer: "flex-1",
+
+  /** Warning title styling */
+  authWarningTitle: "font-medium text-[var(--warning)] mb-1",
+
+  /** Warning message text styling */
+  authWarningText: "text-sm font-semibold text-black leading-relaxed",
 
   // =============================================================================
   // STATUS INDICATORS
