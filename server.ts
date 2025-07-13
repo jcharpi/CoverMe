@@ -87,6 +87,7 @@ app.post(
       // Read the uploaded resume file from memory buffer
       const resumeContent: string = req.file.buffer.toString("utf8")
       const writingSample: string = req.body.writingSample || ""
+      const selectedModel: string = req.body.model || OLLAMA_MODEL
 
       // Prepare prompt for Ollama to generate cover letter
       const writingSampleSection = writingSample
@@ -118,9 +119,9 @@ ${resumeContent}
 
 CRITICAL: Your response must contain EXACTLY 3 paragraphs in the body. Do not write more than 3 paragraphs. Each paragraph should be separated by a blank line.`
 
-      // Call Ollama with configured model
+      // Call Ollama with selected model
       const response = await ollama.chat({
-        model: OLLAMA_MODEL,
+        model: selectedModel,
         messages: [{ role: "user", content: prompt }],
       })
 
@@ -145,6 +146,23 @@ CRITICAL: Your response must contain EXACTLY 3 paragraphs in the body. Do not wr
 // Health check endpoint
 app.get("/api/health", (req: Request, res: Response<HealthResponse>) => {
   res.json({ status: "Backend server is running" })
+})
+
+// Endpoint to get available Ollama models
+app.get("/api/models", async (req: Request, res: Response) => {
+  try {
+    const models = await ollama.list()
+    const modelNames = models.models.map((model) => model.name)
+    res.json({ models: modelNames })
+  } catch (error: unknown) {
+    console.error("Error fetching models:", error)
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error"
+    res.status(500).json({
+      error: "Failed to fetch models",
+      details: errorMessage,
+    })
+  }
 })
 
 // Check if Ollama is running and start if needed

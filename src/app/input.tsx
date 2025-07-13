@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { styles, svgPaths } from "./styles"
 import Output from "./output"
 
@@ -12,6 +12,27 @@ export default function Input() {
   const [writingSample, setWritingSample] = useState("")
   const [isProcessing, setIsProcessing] = useState(false)
   const [aiOutput, setAiOutput] = useState("")
+  const [availableModels, setAvailableModels] = useState<string[]>([])
+  const [selectedModel, setSelectedModel] = useState<string>("")
+
+  // Fetch available models on component mount
+  useEffect(() => {
+    const fetchModels = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/models`)
+        if (response.ok) {
+          const data = await response.json()
+          setAvailableModels(data.models)
+          if (data.models.length > 0) {
+            setSelectedModel(data.models[0]) // Set first model as default
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch models:", error)
+      }
+    }
+    fetchModels()
+  }, [])
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -30,6 +51,10 @@ export default function Input() {
     setWritingSample(event.target.value)
   }
 
+  const handleModelChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedModel(event.target.value)
+  }
+
   const bothFieldsCompleted = resumeFile && linkUrl.trim()
 
   const handleCreate = async () => {
@@ -40,6 +65,9 @@ export default function Input() {
     formData.append("resume", resumeFile)
     if (writingSample.trim()) {
       formData.append("writingSample", writingSample.trim())
+    }
+    if (selectedModel) {
+      formData.append("model", selectedModel)
     }
 
     try {
@@ -104,6 +132,32 @@ export default function Input() {
       {/* Header */}
       <div className={styles.header}>
         <h1 className={styles.title}>CoverMe</h1>
+        {/* Model Dropdown */}
+        {availableModels.length > 0 && (
+          <div style={{ position: "absolute", top: "20px", right: "20px" }}>
+            <select
+              value={selectedModel}
+              onChange={handleModelChange}
+              style={{
+                padding: "8px 12px",
+                borderRadius: "6px",
+                border: "2px solid white",
+                backgroundColor: "white",
+                color: "black",
+                fontSize: "14px",
+                fontWeight: "500",
+                outline: "none",
+                cursor: "pointer",
+              }}
+            >
+              {availableModels.map((model) => (
+                <option key={model} value={model}>
+                  {model}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
       </div>
 
       {/* Main Content */}
