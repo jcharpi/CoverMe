@@ -8,9 +8,7 @@ An AI-powered cover letter generator that creates personalized cover letters bas
 Download and install Ollama from [https://ollama.ai](https://ollama.ai) for your operating system.
 
 ### 2. Install AI Models
-Before using CoverMe, you need to install at least one language model. View models, their context windows, and download size here:
-
-[https://github.com/ollama/ollama](https://github.com/ollama/ollama)
+Before using CoverMe, you need to install at least one language model. View models, their context windows, and download size here: [https://github.com/ollama/ollama](https://github.com/ollama/ollama)
 
 ### 3. Start Ollama Service
 Ensure Ollama is running before starting the application:
