@@ -1,6 +1,23 @@
 /**
- * Main Express server for CoverMe application
- * Handles cover letter generation, file uploads, and API endpoints
+ * CoverMe Express Server
+ *
+ * Main Express.js server application for the CoverMe cover letter generator.
+ * Provides API endpoints for:
+ * - Cover letter generation using Ollama AI models
+ * - Resume file upload and processing
+ * - Job posting scraping and parsing
+ * - AI model management and health checks
+ *
+ * Features:
+ * - Multipart file upload support for resume files
+ * - CORS configuration for local development
+ * - Comprehensive error handling and logging
+ * - Integration with Ollama for AI text generation
+ * - Automatic header and signature addition to cover letters
+ *
+ * @fileoverview Express server with AI-powered cover letter generation
+ * @version 1.0.0
+ * @author CoverMe Team
  */
 import express, { Request, Response } from "express"
 import cors from "cors"
@@ -102,8 +119,28 @@ app.post(
       const summary: string = response.message.content
 
       const cleanedSummary = removeThinkingTags(summary)
+
+      // Hardcoded header
+      const header = `Applicant Info:
+Address
+City, ST Zip Code
+Date
+
+Recipient Info:
+Name
+Job Title
+Company/Organization Name
+Address
+City, ST Zip Code
+
+`
+
+      // Combine header + body + signature
+      const finalCoverLetter =
+        header + cleanedSummary + "\n\nSincerely,\n[Your Name]"
+
       res.json({
-        summary: cleanedSummary,
+        summary: finalCoverLetter,
         hasAuthIssue: hasAuthIssue,
       })
     } catch (error: unknown) {

@@ -80,33 +80,18 @@ ${jobContent}
 JOB INSTRUCTION: Analyze the job posting above and tailor the cover letter specifically to this position. Reference specific requirements, company information, and role details mentioned in the posting.`
     : ""
 
-  const header = `Applicant Info:
-Address
-City, ST Zip Code
-Date
-
-Recipient Info:
-Name
-Job Title
-Company/Organization Name
-Address
-City, ST Zip Code`
-
   return `
 You are a professional cover letter writer. Follow these STRICT requirements:
 ${writingSampleSection}
 ${jobSection}
 
 1. STRUCTURE: Write EXACTLY 3 paragraphs (no more, no less)
-2. LENGTH: 300-400 words total
-3. FORMAT: Start with the business letter header provided below, then write the cover letter body
+2. LENGTH: about 300-350 words total
+3. FORMAT: Write only the cover letter body (no header)
 4. PARAGRAPH BREAKDOWN:
    - Paragraph 1: Opening (state intent, position, brief introduction)
    - Paragraph 2: Qualifications (majority of content - highlight relevant skills/experience)
    - Paragraph 3: Closing (follow-up plan, thank you)
-
-Business Letter Header (include this exactly at the top):
-${header}
 
 Stanford Cover Letter Guide:
 ${stanfordGuideContent}
@@ -114,7 +99,7 @@ ${stanfordGuideContent}
 Applicant's Resume:
 ${resumeContent}
 
-CRITICAL: Your response must start with the exact header above, followed by EXACTLY 3 paragraphs in the body. Do not write more than 3 paragraphs. Each paragraph should be separated by a blank line.`
+CRITICAL: Write EXACTLY 3 paragraphs for the cover letter body. Do not include any header or signature. Each paragraph should be separated by a blank line.`
 }
 
 export function removeThinkingTags(text: string): string {

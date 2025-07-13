@@ -1,6 +1,31 @@
 /**
- * Main input component for the CoverMe application
- * Handles resume upload, job link input, writing sample, and cover letter generation
+ * Main Input Component
+ *
+ * The primary interface for cover letter generation in the CoverMe application.
+ * Manages the complete user workflow from file upload to AI generation, featuring:
+ *
+ * - Step-by-step form with visual progress indicators
+ * - Resume file upload with validation (TXT files only)
+ * - Job link input with real-time URL validation
+ * - Optional writing sample for style matching
+ * - AI model selection and processing states
+ * - Ollama setup guidance when no models are available
+ *
+ * State Management:
+ * - File upload state and validation
+ * - Form input values and validation states
+ * - AI processing status and error handling
+ * - Model availability and selection
+ *
+ * @component
+ * @example
+ * ```tsx
+ * <Input />
+ * ```
+ *
+ * @fileoverview Main cover letter generation interface component
+ * @version 1.0.0
+ * @author CoverMe Team
  */
 "use client"
 
@@ -11,6 +36,7 @@ import ModelSelector from "./components/ModelSelector"
 import FileUploadField from "./components/FileUploadField"
 import LinkInputField from "./components/LinkInputField"
 import WritingSampleSection from "./components/WritingSampleSection"
+import OllamaSetupMessage from "./components/OllamaSetupMessage"
 import { useModels } from "./hooks/useModels"
 import { isValidInput } from "./utils/validation"
 import {
@@ -102,40 +128,66 @@ export default function Input() {
     return <Output initialOutput={aiOutput} onCreateAnother={resetToHome} />
   }
 
+  // Show setup message if no models are available
+  if (availableModels.length === 0) {
+    return (
+      <div className={styles.container}>
+        <header className={styles.header}>
+          <div>
+            <h1 className={styles.title}>CoverMe</h1>
+            <p className={styles.subtitle}>
+              Generate personalized cover letters with AI
+            </p>
+          </div>
+        </header>
+        <main className={styles.mainContent}>
+          <OllamaSetupMessage />
+        </main>
+      </div>
+    )
+  }
+
   return (
-    <div className={styles.container} style={{ backgroundColor: "#4ACA7A" }}>
+    <div className={styles.container}>
       {/* Header */}
-      <div className={styles.header}>
-        <h1 className={styles.title}>CoverMe</h1>
+      <header className={styles.header}>
+        <div>
+          <h1 className={styles.title}>CoverMe</h1>
+          <p className={styles.subtitle}>
+            Generate personalized cover letters with AI
+          </p>
+        </div>
         <ModelSelector
           availableModels={availableModels}
           selectedModel={selectedModel}
           onModelChange={handleModelChange}
         />
-      </div>
+      </header>
 
       {/* Main Content */}
-      <div className={styles.mainContent}>
-        <FileUploadField
-          resumeFile={resumeFile}
-          onFileUpload={handleFileUpload}
-        />
-
-        <LinkInputField
-          linkUrl={linkUrl}
-          onLinkChange={handleLinkChange}
-          isValid={isValidInput(linkUrl)}
-        />
-
-        {bothFieldsCompleted && (
-          <WritingSampleSection
-            writingSample={writingSample}
-            onWritingChange={handleWritingChange}
-            onCreateClick={handleCreate}
-            isProcessing={isProcessing}
+      <main className={styles.mainContent}>
+        <div className={styles.fieldContainer}>
+          <FileUploadField
+            resumeFile={resumeFile}
+            onFileUpload={handleFileUpload}
           />
-        )}
-      </div>
+
+          <LinkInputField
+            linkUrl={linkUrl}
+            onLinkChange={handleLinkChange}
+            isValid={isValidInput(linkUrl)}
+          />
+
+          {bothFieldsCompleted && (
+            <WritingSampleSection
+              writingSample={writingSample}
+              onWritingChange={handleWritingChange}
+              onCreateClick={handleCreate}
+              isProcessing={isProcessing}
+            />
+          )}
+        </div>
+      </main>
     </div>
   )
 }

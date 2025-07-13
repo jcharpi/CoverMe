@@ -1,70 +1,115 @@
 /**
- * File upload component for resume files
- * Handles .txt file upload with visual feedback and validation
+ * File Upload Field Component
+ *
+ * A modern drag-and-drop file upload component for resume files. Features visual feedback,
+ * validation states, and accessibility support. Accepts only .txt files up to 10MB.
+ *
+ * @component
+ * @example
+ * ```tsx
+ * <FileUploadField
+ *   resumeFile={resumeFile}
+ *   onFileUpload={handleFileUpload}
+ * />
+ * ```
+ *
+ * @fileoverview Resume file upload component with validation
+ * @version 1.0.0
+ * @author CoverMe Team
  */
-import { styles, svgPaths } from "../styles"
 
-interface FileUploadFieldProps {
-  resumeFile: File | null
-  onFileUpload: (event: React.ChangeEvent<HTMLInputElement>) => void
-}
+import { styles } from "../styles"
+import { SVG_PATHS, APP_CONSTANTS } from "../styles/constants"
+import type { FileUploadFieldProps } from "../types/interfaces"
 
 export default function FileUploadField({
   resumeFile,
   onFileUpload,
 }: FileUploadFieldProps) {
   return (
-    <div className={styles.fieldContainer}>
-      <div
-        className={styles.circle}
-        style={{
-          borderColor: "white",
-          backgroundColor: resumeFile ? "white" : "transparent",
-        }}
-      >
-        {resumeFile && (
-          <svg
-            className={styles.checkIcon}
-            style={{ color: "#10b981" }}
-            fill="currentColor"
-            viewBox="0 0 20 20"
-          >
-            <path
-              fillRule="evenodd"
-              d={svgPaths.checkmark}
-              clipRule="evenodd"
-            />
-          </svg>
-        )}
-      </div>
-      <label className={styles.fileUpload}>
-        <span
-          className={`${styles.fileUploadText} ${
-            resumeFile ? "text-white" : "text-white text-opacity-50"
+    <div className={styles.card}>
+      <div className="flex items-start space-x-4">
+        <div
+          className={`${styles.statusIndicator} ${
+            resumeFile
+              ? styles.statusIndicatorComplete
+              : styles.statusIndicatorIncomplete
           }`}
         >
-          {resumeFile ? resumeFile.name : "Upload resume"}
-        </span>
-        <svg
-          className={styles.uploadIcon}
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d={svgPaths.upload}
-          />
-        </svg>
-        <input
-          type="file"
-          accept=".txt"
-          onChange={onFileUpload}
-          className={styles.fileInput}
-        />
-      </label>
+          {resumeFile && (
+            <svg
+              className={styles.checkIcon}
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path
+                fillRule="evenodd"
+                d={SVG_PATHS.CHECKMARK}
+                clipRule="evenodd"
+              />
+            </svg>
+          )}
+        </div>
+
+        <div className="flex-1">
+          <label className={styles.label}>1. Upload your resume</label>
+          <div
+            className={`${styles.fileUpload} ${
+              resumeFile ? styles.fileUploadActive : ""
+            }`}
+          >
+            <div className={styles.fileUploadContent}>
+              <svg
+                className={styles.uploadIcon}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d={SVG_PATHS.UPLOAD}
+                />
+              </svg>
+              <div>
+                <div
+                  className={
+                    resumeFile
+                      ? styles.fileUploadTextActive
+                      : styles.fileUploadText
+                  }
+                >
+                  {resumeFile
+                    ? resumeFile.name
+                    : "Choose a file or drag and drop"}
+                </div>
+                <div
+                  className={
+                    resumeFile
+                      ? styles.fileUploadSubtextActive
+                      : styles.fileUploadSubtext
+                  }
+                >
+                  {APP_CONSTANTS.ACCEPTED_FILE_TYPES.join(", ")} files only, up
+                  to {APP_CONSTANTS.MAX_FILE_SIZE_MB}MB
+                </div>
+              </div>
+            </div>
+            <input
+              type="file"
+              accept={APP_CONSTANTS.ACCEPTED_FILE_TYPES.join(",")}
+              onChange={onFileUpload}
+              className={styles.fileInput}
+            />
+          </div>
+          {resumeFile && (
+            <div className={styles.helperText}>
+              ✓ Resume uploaded successfully
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   )
 }
