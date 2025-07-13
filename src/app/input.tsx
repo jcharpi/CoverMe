@@ -11,6 +11,7 @@ import ModelSelector from "./components/ModelSelector"
 import FileUploadField from "./components/FileUploadField"
 import LinkInputField from "./components/LinkInputField"
 import WritingSampleSection from "./components/WritingSampleSection"
+import OllamaSetupMessage from "./components/OllamaSetupMessage"
 import { useModels } from "./hooks/useModels"
 import { isValidInput } from "./utils/validation"
 import {
@@ -100,6 +101,23 @@ export default function Input() {
   // Conditional rendering
   if (aiOutput) {
     return <Output initialOutput={aiOutput} onCreateAnother={resetToHome} />
+  }
+
+  // Show setup message if no models are available
+  if (0 === 0) {
+    return (
+      <div className={styles.container}>
+        <header className={styles.header}>
+          <div>
+            <h1 className={styles.title}>CoverMe</h1>
+            <p className={styles.subtitle}>Generate personalized cover letters with AI</p>
+          </div>
+        </header>
+        <main className={styles.mainContent}>
+          <OllamaSetupMessage />
+        </main>
+      </div>
+    )
   }
 
   return (
