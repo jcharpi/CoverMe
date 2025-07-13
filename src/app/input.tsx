@@ -38,6 +38,9 @@ export default function Input() {
     setIsProcessing(true)
     const formData = new FormData()
     formData.append("resume", resumeFile)
+    if (writingSample.trim()) {
+      formData.append("writingSample", writingSample.trim())
+    }
 
     try {
       // First test if backend is running
@@ -47,10 +50,13 @@ export default function Input() {
       }
 
       // Send resume for processing
-      const response = await fetch(`${API_BASE_URL}/api/generate-cover-letter`, {
-        method: "POST",
-        body: formData,
-      })
+      const response = await fetch(
+        `${API_BASE_URL}/api/generate-cover-letter`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      )
 
       if (!response.ok) {
         const errorData = await response

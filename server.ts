@@ -13,7 +13,10 @@ const __dirname = path.dirname(__filename)
 
 const execAsync = promisify(exec)
 
-const stanfordGuideContent = fs.readFileSync(path.join(__dirname, 'src', 'data', 'stanford_guide.txt'), 'utf8')
+const stanfordGuideContent = fs.readFileSync(
+  path.join(__dirname, "src", "data", "stanford_guide.txt"),
+  "utf8"
+)
 
 // Type definitions
 interface ResumeRequest extends Request {
@@ -83,9 +86,21 @@ app.post(
 
       // Read the uploaded resume file from memory buffer
       const resumeContent: string = req.file.buffer.toString("utf8")
+      const writingSample: string = req.body.writingSample || ""
 
       // Prepare prompt for Ollama to generate cover letter
-      const prompt: string = `You are a professional cover letter writer. Follow these STRICT requirements:
+      const writingSampleSection = writingSample
+        ? `
+
+Writing Sample for Style Reference:
+${writingSample}
+
+STYLE INSTRUCTION: Analyze the writing sample above and mimic the applicant's writing style, tone, and voice in the cover letter. Match their level of formality, sentence structure, and personal expression while maintaining professionalism.`
+        : ""
+
+      const prompt: string = `
+You are a professional cover letter writer. Follow these STRICT requirements:
+${writingSampleSection}
 
 1. STRUCTURE: Write EXACTLY 3 paragraphs (no more, no less)
 2. LENGTH: 300-400 words total
