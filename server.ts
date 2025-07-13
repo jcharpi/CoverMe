@@ -4,8 +4,16 @@ import multer from "multer"
 import { Ollama } from "ollama"
 import { exec } from "child_process"
 import { promisify } from "util"
+import fs from "fs"
+import path from "path"
+import { fileURLToPath } from "url"
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 const execAsync = promisify(exec)
+
+const stanfordGuideContent = fs.readFileSync(path.join(__dirname, 'src', 'data', 'stanford_guide.txt'), 'utf8')
 
 // Type definitions
 interface ResumeRequest extends Request {
@@ -60,9 +68,9 @@ app.use(
 )
 app.use(express.json())
 
-// Endpoint to process resume and generate summary
+// Endpoint to process resume and generate cover letter
 app.post(
-  "/api/summarize-resume",
+  "/api/generate-cover-letter",
   upload.single("resume"),
   async (
     req: ResumeRequest,
@@ -76,12 +84,16 @@ app.post(
       // Read the uploaded resume file from memory buffer
       const resumeContent: string = req.file.buffer.toString("utf8")
 
-      // Prepare prompt for Ollama
-      const prompt: string = `Please provide a concise professional summary of the following resume. Focus on key skills, experience, and qualifications:
+      // Prepare prompt for Ollama to generate cover letter
+      const prompt: string = `Based on the following Stanford guide for cover letters and the applicant's resume information, generate a professional cover letter. It is absoluetely VITAL that you use the three paragraph format in the Stanford guide. Use the resume as context for the applicant's qualifications and experience.
 
+Stanford Cover Letter Guide:
+${stanfordGuideContent}
+
+Applicant's Resume:
 ${resumeContent}
 
-Summary:`
+Remember, this must be a 3 paragraph cover letter, spanning about 300-400 words. Most words should be in the second paragraph. Remember 3 paragraphs with the proper header:`
 
       // Call Ollama with configured model
       const response = await ollama.chat({
@@ -91,16 +103,16 @@ Summary:`
 
       const summary: string = response.message.content
 
-      // Send response with summary content only
+      // Send response with cover letter content
       res.json({
         summary: summary,
       })
     } catch (error: unknown) {
-      console.error("Error processing resume:", error)
+      console.error("Error generating cover letter:", error)
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error"
       res.status(500).json({
-        error: "Failed to process resume",
+        error: "Failed to generate cover letter",
         details: errorMessage,
       })
     }

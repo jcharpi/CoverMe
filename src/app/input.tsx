@@ -47,7 +47,7 @@ export default function Input() {
       }
 
       // Send resume for processing
-      const response = await fetch(`${API_BASE_URL}/api/summarize-resume`, {
+      const response = await fetch(`${API_BASE_URL}/api/generate-cover-letter`, {
         method: "POST",
         body: formData,
       })
