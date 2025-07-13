@@ -2,6 +2,8 @@
  * Dropdown component for selecting AI models
  * Displays available Ollama models and handles model selection
  */
+import { styles } from "../styles"
+
 interface ModelSelectorProps {
   availableModels: string[]
   selectedModel: string
@@ -16,21 +18,14 @@ export default function ModelSelector({
   if (availableModels.length === 0) return null
 
   return (
-    <div style={{ position: "absolute", top: "20px", right: "20px" }}>
+    <div className="flex items-center space-x-2">
+      <label className="text-sm font-medium text-[var(--text-secondary)]">
+        Model:
+      </label>
       <select
         value={selectedModel}
         onChange={onModelChange}
-        style={{
-          padding: "8px 12px",
-          borderRadius: "6px",
-          border: "2px solid white",
-          backgroundColor: "white",
-          color: "black",
-          fontSize: "14px",
-          fontWeight: "500",
-          outline: "none",
-          cursor: "pointer",
-        }}
+        className={styles.select}
       >
         {availableModels.map((model) => (
           <option key={model} value={model}>

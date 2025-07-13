@@ -103,39 +103,44 @@ export default function Input() {
   }
 
   return (
-    <div className={styles.container} style={{ backgroundColor: "#4ACA7A" }}>
+    <div className={styles.container}>
       {/* Header */}
-      <div className={styles.header}>
-        <h1 className={styles.title}>CoverMe</h1>
+      <header className={styles.header}>
+        <div>
+          <h1 className={styles.title}>CoverMe</h1>
+          <p className={styles.subtitle}>Generate personalized cover letters with AI</p>
+        </div>
         <ModelSelector
           availableModels={availableModels}
           selectedModel={selectedModel}
           onModelChange={handleModelChange}
         />
-      </div>
+      </header>
 
       {/* Main Content */}
-      <div className={styles.mainContent}>
-        <FileUploadField
-          resumeFile={resumeFile}
-          onFileUpload={handleFileUpload}
-        />
-
-        <LinkInputField
-          linkUrl={linkUrl}
-          onLinkChange={handleLinkChange}
-          isValid={isValidInput(linkUrl)}
-        />
-
-        {bothFieldsCompleted && (
-          <WritingSampleSection
-            writingSample={writingSample}
-            onWritingChange={handleWritingChange}
-            onCreateClick={handleCreate}
-            isProcessing={isProcessing}
+      <main className={styles.mainContent}>
+        <div className={styles.fieldContainer}>
+          <FileUploadField
+            resumeFile={resumeFile}
+            onFileUpload={handleFileUpload}
           />
-        )}
-      </div>
+
+          <LinkInputField
+            linkUrl={linkUrl}
+            onLinkChange={handleLinkChange}
+            isValid={isValidInput(linkUrl)}
+          />
+
+          {bothFieldsCompleted && (
+            <WritingSampleSection
+              writingSample={writingSample}
+              onWritingChange={handleWritingChange}
+              onCreateClick={handleCreate}
+              isProcessing={isProcessing}
+            />
+          )}
+        </div>
+      </main>
     </div>
   )
 }

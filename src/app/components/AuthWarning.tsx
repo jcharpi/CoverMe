@@ -4,26 +4,11 @@
  */
 export default function AuthWarning() {
   return (
-    <div
-      style={{
-        backgroundColor: "#fef3c7",
-        border: "1px solid #f59e0b",
-        borderRadius: "8px",
-        padding: "16px",
-        marginBottom: "24px",
-        color: "#92400e",
-      }}
-    >
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "8px",
-          marginBottom: "8px",
-        }}
-      >
+    <div className="bg-[var(--warning-light)] border border-[var(--warning)] rounded-[var(--radius-md)] p-4 mb-6">
+      <div className="flex items-start space-x-3">
         <svg
-          style={{ width: "20px", height: "20px", fill: "#f59e0b" }}
+          className="w-5 h-5 text-[var(--warning)] flex-shrink-0 mt-0.5"
+          fill="currentColor"
           viewBox="0 0 20 20"
         >
           <path
@@ -32,14 +17,18 @@ export default function AuthWarning() {
             clipRule="evenodd"
           />
         </svg>
-        <strong>Job Details Access Issue</strong>
+        <div className="flex-1">
+          <h3 className="font-medium text-[var(--warning)] mb-1">
+            Job Details Access Issue
+          </h3>
+          <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
+            The specific job details could not be accessed due to authorization
+            requirements. If using a job board link (like LinkedIn), please try
+            using the direct job application link from the company's careers
+            page instead for better results.
+          </p>
+        </div>
       </div>
-      <p style={{ margin: 0, lineHeight: "1.5" }}>
-        The specific job details could not be accessed due to authorization
-        requirements. If using a job board link (like LinkedIn), please try
-        using the direct job application link from the company&apos;s careers
-        page instead for better results.
-      </p>
     </div>
   )
 }
