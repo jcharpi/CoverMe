@@ -10,13 +10,17 @@ import { fileURLToPath } from "url"
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
-
 const execAsync = promisify(exec)
 
 const stanfordGuideContent = fs.readFileSync(
   path.join(__dirname, "src", "data", "stanford_guide.txt"),
   "utf8"
 )
+
+// Configuration constants
+const PORT: number = 3001
+const OLLAMA_HOST: string = "http://localhost:11434"
+const OLLAMA_STARTUP_DELAY: number = 3000
 
 // Type definitions
 interface ResumeRequest extends Request {
@@ -36,18 +40,11 @@ interface HealthResponse {
   status: string
 }
 
-// Configuration constants
-const PORT: number = 3001
-const OLLAMA_HOST: string = "http://localhost:11434"
-const OLLAMA_MODEL: string = "phi4-mini"
-const OLLAMA_STARTUP_DELAY: number = 3000
-
+// Initialize Express app
 const app: express.Application = express()
-
-// Initialize Ollama client
 const ollama: Ollama = new Ollama({ host: OLLAMA_HOST })
 
-// Configure multer for file uploads (memory storage only)
+// Configure multer for file uploads
 const upload: multer.Multer = multer({
   storage: multer.memoryStorage(),
   fileFilter: (
@@ -63,6 +60,7 @@ const upload: multer.Multer = multer({
   },
 })
 
+// Middleware
 app.use(
   cors({
     origin: ["http://localhost:3000", "http://127.0.0.1:3000"],
@@ -87,37 +85,13 @@ app.post(
       // Read the uploaded resume file from memory buffer
       const resumeContent: string = req.file.buffer.toString("utf8")
       const writingSample: string = req.body.writingSample || ""
-      const selectedModel: string = req.body.model || OLLAMA_MODEL
+      const selectedModel: string = req.body.model
 
-      // Prepare prompt for Ollama to generate cover letter
-      const writingSampleSection = writingSample
-        ? `
-
-Writing Sample for Style Reference:
-${writingSample}
-
-STYLE INSTRUCTION: Analyze the writing sample above and mimic the applicant's writing style, tone, and voice in the cover letter. Match their level of formality, sentence structure, and personal expression while maintaining professionalism.`
-        : ""
-
-      const prompt: string = `
-You are a professional cover letter writer. Follow these STRICT requirements:
-${writingSampleSection}
-
-1. STRUCTURE: Write EXACTLY 3 paragraphs (no more, no less)
-2. LENGTH: 300-400 words total
-3. FORMAT: Include proper business letter header
-4. PARAGRAPH BREAKDOWN:
-   - Paragraph 1: Opening (state intent, position, brief introduction)
-   - Paragraph 2: Qualifications (majority of content - highlight relevant skills/experience)
-   - Paragraph 3: Closing (follow-up plan, thank you)
-
-Stanford Cover Letter Guide:
-${stanfordGuideContent}
-
-Applicant's Resume:
-${resumeContent}
-
-CRITICAL: Your response must contain EXACTLY 3 paragraphs in the body. Do not write more than 3 paragraphs. Each paragraph should be separated by a blank line.`
+      const prompt: string = createCoverLetterPrompt(
+        resumeContent,
+        writingSample,
+        stanfordGuideContent
+      )
 
       // Call Ollama with selected model
       const response = await ollama.chat({
@@ -127,23 +101,10 @@ CRITICAL: Your response must contain EXACTLY 3 paragraphs in the body. Do not wr
 
       const summary: string = response.message.content
 
-      // Remove thinking tags from the response
-      const cleanedSummary = summary
-        .replace(/<think>[\s\S]*?<\/think>/gi, "")
-        .trim()
-
-      // Send response with cover letter content
-      res.json({
-        summary: cleanedSummary,
-      })
+      const cleanedSummary = removeThinkingTags(summary)
+      res.json({ summary: cleanedSummary })
     } catch (error: unknown) {
-      console.error("Error generating cover letter:", error)
-      const errorMessage =
-        error instanceof Error ? error.message : "Unknown error"
-      res.status(500).json({
-        error: "Failed to generate cover letter",
-        details: errorMessage,
-      })
+      handleError(res, error, "Failed to generate cover letter")
     }
   }
 )
@@ -160,13 +121,7 @@ app.get("/api/models", async (req: Request, res: Response) => {
     const modelNames = models.models.map((model) => model.name)
     res.json({ models: modelNames })
   } catch (error: unknown) {
-    console.error("Error fetching models:", error)
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error"
-    res.status(500).json({
-      error: "Failed to fetch models",
-      details: errorMessage,
-    })
+    handleError(res, error, "Failed to fetch models")
   }
 })
 
@@ -190,23 +145,6 @@ const ensureOllama = async (): Promise<void> => {
       )
     }
   }
-
-  // Check if configured model is available
-  try {
-    const models = await ollama.list()
-    const hasModel = models.models.some((model) =>
-      model.name.includes(OLLAMA_MODEL)
-    )
-    if (!hasModel) {
-      console.log(`Downloading ${OLLAMA_MODEL} model...`)
-      await ollama.pull({ model: OLLAMA_MODEL })
-      console.log(`${OLLAMA_MODEL} model ready`)
-    }
-  } catch {
-    console.log(
-      `Warning: Could not verify ${OLLAMA_MODEL} model. You may need to run "ollama pull ${OLLAMA_MODEL}"`
-    )
-  }
 }
 
 // Start server
@@ -224,6 +162,55 @@ const startServer = async (): Promise<void> => {
     console.error("❌ Failed to start server:", error)
     process.exit(1)
   }
+}
+
+// Utility functions
+function createCoverLetterPrompt(
+  resumeContent: string,
+  writingSample: string,
+  stanfordGuideContent: string
+): string {
+  const writingSampleSection = writingSample
+    ? `
+
+Writing Sample for Style Reference:
+${writingSample}
+
+STYLE INSTRUCTION: Analyze the writing sample above and mimic the applicant's writing style, tone, and voice in the cover letter. Match their level of formality, sentence structure, and personal expression while maintaining professionalism.`
+    : ""
+
+  return `
+You are a professional cover letter writer. Follow these STRICT requirements:
+${writingSampleSection}
+
+1. STRUCTURE: Write EXACTLY 3 paragraphs (no more, no less)
+2. LENGTH: 300-400 words total
+3. FORMAT: Include proper business letter header
+4. PARAGRAPH BREAKDOWN:
+   - Paragraph 1: Opening (state intent, position, brief introduction)
+   - Paragraph 2: Qualifications (majority of content - highlight relevant skills/experience)
+   - Paragraph 3: Closing (follow-up plan, thank you)
+
+Stanford Cover Letter Guide:
+${stanfordGuideContent}
+
+Applicant's Resume:
+${resumeContent}
+
+CRITICAL: Your response must contain EXACTLY 3 paragraphs in the body. Do not write more than 3 paragraphs. Each paragraph should be separated by a blank line.`
+}
+
+function removeThinkingTags(text: string): string {
+  return text.replace(/<think>[\s\S]*?<\/think>/gi, "").trim()
+}
+
+function handleError(res: Response, error: unknown, message: string): void {
+  console.error(message, error)
+  const errorMessage = error instanceof Error ? error.message : "Unknown error"
+  res.status(500).json({
+    error: message,
+    details: errorMessage,
+  })
 }
 
 startServer()
