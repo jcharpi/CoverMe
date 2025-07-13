@@ -2,9 +2,14 @@
 The cover letter provides you with an opportunity to introduce yourself and state your objective, personalize your resume, and highlight information that addresses the needs and interests of the employer. Bear in mind that letters you write not only convey your interest and qualifications, but also give the employer an opportunity to observe your attentiveness to detail, spelling, grammar, and the overall quality of your written communication. Flaws in your letters will often be interpreted as flaws in your qualifications.
 
 Header:
-Address City, ST Zip Code Date
+Applicant Info:
+Address
+City, ST Zip Code
+Date
+
+Recipient Info:
 Name
-Title
+Job Title
 Company/Organization Name
 Address
 City, ST Zip Code
@@ -36,7 +41,7 @@ Additional suggestions for closing:
 Final Notes:
 * Address the letter to a specific person. If a name is not available, contact the organization to find out. As a last resort, use titles like "Personnel Manager," "Hiring Manager," or "Recruiting Representative."
 
-Sincerely, 
+Sincerely,
 Your First Name and Last Name
 
 

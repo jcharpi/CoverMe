@@ -4,8 +4,23 @@ import multer from "multer"
 import { Ollama } from "ollama"
 import { exec } from "child_process"
 import { promisify } from "util"
+import fs from "fs"
+import path from "path"
+import { fileURLToPath } from "url"
 
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 const execAsync = promisify(exec)
+
+const stanfordGuideContent = fs.readFileSync(
+  path.join(__dirname, "src", "data", "stanford_guide.txt"),
+  "utf8"
+)
+
+// Configuration constants
+const PORT: number = 3001
+const OLLAMA_HOST: string = "http://localhost:11434"
+const OLLAMA_STARTUP_DELAY: number = 3000
 
 // Type definitions
 interface ResumeRequest extends Request {
@@ -25,18 +40,11 @@ interface HealthResponse {
   status: string
 }
 
-// Configuration constants
-const PORT: number = 3001
-const OLLAMA_HOST: string = "http://localhost:11434"
-const OLLAMA_MODEL: string = "phi4-mini"
-const OLLAMA_STARTUP_DELAY: number = 3000
-
+// Initialize Express app
 const app: express.Application = express()
-
-// Initialize Ollama client
 const ollama: Ollama = new Ollama({ host: OLLAMA_HOST })
 
-// Configure multer for file uploads (memory storage only)
+// Configure multer for file uploads
 const upload: multer.Multer = multer({
   storage: multer.memoryStorage(),
   fileFilter: (
@@ -52,6 +60,7 @@ const upload: multer.Multer = multer({
   },
 })
 
+// Middleware
 app.use(
   cors({
     origin: ["http://localhost:3000", "http://127.0.0.1:3000"],
@@ -60,9 +69,9 @@ app.use(
 )
 app.use(express.json())
 
-// Endpoint to process resume and generate summary
+// Endpoint to process resume and generate cover letter
 app.post(
-  "/api/summarize-resume",
+  "/api/generate-cover-letter",
   upload.single("resume"),
   async (
     req: ResumeRequest,
@@ -75,34 +84,27 @@ app.post(
 
       // Read the uploaded resume file from memory buffer
       const resumeContent: string = req.file.buffer.toString("utf8")
+      const writingSample: string = req.body.writingSample || ""
+      const selectedModel: string = req.body.model
 
-      // Prepare prompt for Ollama
-      const prompt: string = `Please provide a concise professional summary of the following resume. Focus on key skills, experience, and qualifications:
+      const prompt: string = createCoverLetterPrompt(
+        resumeContent,
+        writingSample,
+        stanfordGuideContent
+      )
 
-${resumeContent}
-
-Summary:`
-
-      // Call Ollama with configured model
+      // Call Ollama with selected model
       const response = await ollama.chat({
-        model: OLLAMA_MODEL,
+        model: selectedModel,
         messages: [{ role: "user", content: prompt }],
       })
 
       const summary: string = response.message.content
 
-      // Send response with summary content only
-      res.json({
-        summary: summary,
-      })
+      const cleanedSummary = removeThinkingTags(summary)
+      res.json({ summary: cleanedSummary })
     } catch (error: unknown) {
-      console.error("Error processing resume:", error)
-      const errorMessage =
-        error instanceof Error ? error.message : "Unknown error"
-      res.status(500).json({
-        error: "Failed to process resume",
-        details: errorMessage,
-      })
+      handleError(res, error, "Failed to generate cover letter")
     }
   }
 )
@@ -110,6 +112,17 @@ Summary:`
 // Health check endpoint
 app.get("/api/health", (req: Request, res: Response<HealthResponse>) => {
   res.json({ status: "Backend server is running" })
+})
+
+// Endpoint to get available Ollama models
+app.get("/api/models", async (req: Request, res: Response) => {
+  try {
+    const models = await ollama.list()
+    const modelNames = models.models.map((model) => model.name)
+    res.json({ models: modelNames })
+  } catch (error: unknown) {
+    handleError(res, error, "Failed to fetch models")
+  }
 })
 
 // Check if Ollama is running and start if needed
@@ -132,23 +145,6 @@ const ensureOllama = async (): Promise<void> => {
       )
     }
   }
-
-  // Check if configured model is available
-  try {
-    const models = await ollama.list()
-    const hasModel = models.models.some((model) =>
-      model.name.includes(OLLAMA_MODEL)
-    )
-    if (!hasModel) {
-      console.log(`Downloading ${OLLAMA_MODEL} model...`)
-      await ollama.pull({ model: OLLAMA_MODEL })
-      console.log(`${OLLAMA_MODEL} model ready`)
-    }
-  } catch {
-    console.log(
-      `Warning: Could not verify ${OLLAMA_MODEL} model. You may need to run "ollama pull ${OLLAMA_MODEL}"`
-    )
-  }
 }
 
 // Start server
@@ -166,6 +162,55 @@ const startServer = async (): Promise<void> => {
     console.error("❌ Failed to start server:", error)
     process.exit(1)
   }
+}
+
+// Utility functions
+function createCoverLetterPrompt(
+  resumeContent: string,
+  writingSample: string,
+  stanfordGuideContent: string
+): string {
+  const writingSampleSection = writingSample
+    ? `
+
+Writing Sample for Style Reference:
+${writingSample}
+
+STYLE INSTRUCTION: Analyze the writing sample above and mimic the applicant's writing style, tone, and voice in the cover letter. Match their level of formality, sentence structure, and personal expression while maintaining professionalism.`
+    : ""
+
+  return `
+You are a professional cover letter writer. Follow these STRICT requirements:
+${writingSampleSection}
+
+1. STRUCTURE: Write EXACTLY 3 paragraphs (no more, no less)
+2. LENGTH: 300-400 words total
+3. FORMAT: Include proper business letter header
+4. PARAGRAPH BREAKDOWN:
+   - Paragraph 1: Opening (state intent, position, brief introduction)
+   - Paragraph 2: Qualifications (majority of content - highlight relevant skills/experience)
+   - Paragraph 3: Closing (follow-up plan, thank you)
+
+Stanford Cover Letter Guide:
+${stanfordGuideContent}
+
+Applicant's Resume:
+${resumeContent}
+
+CRITICAL: Your response must contain EXACTLY 3 paragraphs in the body. Do not write more than 3 paragraphs. Each paragraph should be separated by a blank line.`
+}
+
+function removeThinkingTags(text: string): string {
+  return text.replace(/<think>[\s\S]*?<\/think>/gi, "").trim()
+}
+
+function handleError(res: Response, error: unknown, message: string): void {
+  console.error(message, error)
+  const errorMessage = error instanceof Error ? error.message : "Unknown error"
+  res.status(500).json({
+    error: message,
+    details: errorMessage,
+  })
 }
 
 startServer()
