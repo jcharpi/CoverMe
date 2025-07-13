@@ -3,6 +3,7 @@
  */
 import { NextRequest, NextResponse } from "next/server"
 import { createCoverLetterPrompt } from "../../lib/aiService"
+import { scrapeJobContent } from "../../utils/jobScraper"
 import fs from "fs"
 import path from "path"
 
@@ -48,8 +49,33 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       )
     }
+
+    // Scrape job content and check for authentication issues
+    let jobContent = ""
+    let hasAuthIssue = false
+
+    if (
+      jobLink &&
+      jobLink.trim() &&
+      jobLink.trim().toLowerCase() !== "general"
+    ) {
+      try {
+        const scrapingResult = await scrapeJobContent(jobLink)
+        jobContent = scrapingResult.content
+        hasAuthIssue = scrapingResult.hasAuthIssue
+
+        if (scrapingResult.error) {
+          console.log("Job scraping error:", scrapingResult.error)
+        }
+      } catch (error) {
+        console.error("Failed to scrape job content:", error)
+        // Don't fail the entire request, just proceed without job content
+      }
+    }
+
     console.log("API Key present:", !!process.env.OPENROUTER_API_KEY)
     console.log("Model being used:", model)
+    console.log("Has auth issue:", hasAuthIssue)
 
     const response = await fetch(
       "https://openrouter.ai/api/v1/chat/completions",
@@ -68,7 +94,7 @@ export async function POST(request: NextRequest) {
                 resumeContent,
                 writingSample,
                 stanfordGuideContent,
-                jobLink || "",
+                jobContent || jobLink || "",
                 !jobLink || jobLink.trim().toLowerCase() === "general"
               ),
             },
@@ -108,7 +134,7 @@ City, ST Zip Code
 
     return NextResponse.json({
       summary: finalCoverLetter,
-      hasAuthIssue: false,
+      hasAuthIssue,
     })
   } catch (error) {
     console.error("Cover letter generation error:", error)
