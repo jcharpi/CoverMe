@@ -1,10 +1,10 @@
 /**
  * TypeScript Interface Definitions
- * 
+ *
  * Centralized type definitions for the CoverMe application components and data structures.
  * These interfaces ensure type safety and provide clear contracts for component props,
  * API responses, and internal data structures.
- * 
+ *
  * @fileoverview Type definitions for CoverMe application
  * @version 1.0.0
  * @author CoverMe Team
