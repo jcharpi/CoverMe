@@ -1,7 +1,14 @@
+/**
+ * Output component for displaying generated cover letters
+ * Shows the cover letter with edit capability, download option, and auth warnings
+ */
 "use client"
 
 import { useState } from "react"
 import { styles } from "./styles"
+import AuthWarning from "./components/AuthWarning"
+import { parseOutputData } from "./utils/outputParser"
+import { downloadTextAsFile } from "./utils/fileDownload"
 
 interface OutputProps {
   initialOutput: string
@@ -12,18 +19,13 @@ export default function Output({
   initialOutput,
   onCreateAnother,
 }: OutputProps) {
-  const [aiOutput, setAiOutput] = useState(initialOutput)
+  // Parse output data with fallback for backwards compatibility
+  const outputData = parseOutputData(initialOutput)
+  const [aiOutput, setAiOutput] = useState(outputData.summary)
 
-  const downloadTextAreaContent = () => {
-    const blob = new Blob([aiOutput], { type: "text/plain" })
-    const url = URL.createObjectURL(blob)
-    const downloadLink = document.createElement("a")
-    downloadLink.href = url
-    downloadLink.download = "cover-letter.txt"
-    document.body.appendChild(downloadLink)
-    downloadLink.click()
-    document.body.removeChild(downloadLink)
-    URL.revokeObjectURL(url)
+  // File download handler
+  const handleDownload = () => {
+    downloadTextAsFile(aiOutput)
   }
 
   return (
@@ -32,6 +34,7 @@ export default function Output({
         <h1 className={styles.title}>CoverMe</h1>
       </div>
       <div className={styles.mainContent}>
+        {outputData.hasAuthIssue && <AuthWarning />}
         <div className={styles.writingSection}>
           <h2 className={styles.sectionHeading}>Your Cover Letter</h2>
           <div className={styles.writingContainer}>
@@ -44,7 +47,7 @@ export default function Output({
           <div className={styles.buttonContainer}>
             <button
               className={styles.button}
-              onClick={downloadTextAreaContent}
+              onClick={handleDownload}
               style={{ marginRight: "1rem" }}
             >
               Download

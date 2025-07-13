@@ -1,64 +1,42 @@
+/**
+ * Main Express server for CoverMe application
+ * Handles cover letter generation, file uploads, and API endpoints
+ */
 import express, { Request, Response } from "express"
 import cors from "cors"
-import multer from "multer"
-import { Ollama } from "ollama"
-import { exec } from "child_process"
-import { promisify } from "util"
 import fs from "fs"
 import path from "path"
 import { fileURLToPath } from "url"
 
+// Internal imports
+import { PORT } from "./src/server/config/constants"
+import {
+  ResumeRequest,
+  SummaryResponse,
+  ErrorResponse,
+  HealthResponse,
+} from "./src/server/types/interfaces"
+import { upload } from "./src/server/middleware/upload"
+import { scrapeJobPosting } from "./src/server/services/scraperService"
+import {
+  parseJobPosting,
+  createCoverLetterPrompt,
+  removeThinkingTags,
+  ollama,
+} from "./src/server/services/aiService"
+import { ensureOllama } from "./src/server/services/ollamaService"
+import { handleError } from "./src/server/utils/errorHandler"
+
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
-const execAsync = promisify(exec)
 
 const stanfordGuideContent = fs.readFileSync(
   path.join(__dirname, "src", "data", "stanford_guide.txt"),
   "utf8"
 )
 
-// Configuration constants
-const PORT: number = 3001
-const OLLAMA_HOST: string = "http://localhost:11434"
-const OLLAMA_STARTUP_DELAY: number = 3000
-
-// Type definitions
-interface ResumeRequest extends Request {
-  file?: Express.Multer.File
-}
-
-interface SummaryResponse {
-  summary: string
-}
-
-interface ErrorResponse {
-  error: string
-  details?: string
-}
-
-interface HealthResponse {
-  status: string
-}
-
 // Initialize Express app
 const app: express.Application = express()
-const ollama: Ollama = new Ollama({ host: OLLAMA_HOST })
-
-// Configure multer for file uploads
-const upload: multer.Multer = multer({
-  storage: multer.memoryStorage(),
-  fileFilter: (
-    req: Request,
-    file: Express.Multer.File,
-    cb: multer.FileFilterCallback
-  ) => {
-    if (file.mimetype === "text/plain") {
-      cb(null, true)
-    } else {
-      cb(new Error("Only .txt files are allowed"))
-    }
-  },
-})
 
 // Middleware
 app.use(
@@ -86,11 +64,33 @@ app.post(
       const resumeContent: string = req.file.buffer.toString("utf8")
       const writingSample: string = req.body.writingSample || ""
       const selectedModel: string = req.body.model
+      const jobLink: string = req.body.jobLink || ""
+
+      let jobContent = ""
+      let hasAuthIssue = false
+      if (jobLink.trim().toLowerCase() !== "general") {
+        try {
+          const rawJobContent = await scrapeJobPosting(jobLink)
+          if (
+            rawJobContent &&
+            rawJobContent.includes("requires authentication")
+          ) {
+            hasAuthIssue = true
+            jobContent = rawJobContent
+          } else if (rawJobContent && rawJobContent.length > 100) {
+            jobContent = await parseJobPosting(rawJobContent, selectedModel)
+          }
+        } catch (error) {
+          console.error("Failed to scrape job posting:", error)
+        }
+      }
 
       const prompt: string = createCoverLetterPrompt(
         resumeContent,
         writingSample,
-        stanfordGuideContent
+        stanfordGuideContent,
+        jobContent,
+        jobLink.trim().toLowerCase() === "general"
       )
 
       // Call Ollama with selected model
@@ -102,7 +102,10 @@ app.post(
       const summary: string = response.message.content
 
       const cleanedSummary = removeThinkingTags(summary)
-      res.json({ summary: cleanedSummary })
+      res.json({
+        summary: cleanedSummary,
+        hasAuthIssue: hasAuthIssue,
+      })
     } catch (error: unknown) {
       handleError(res, error, "Failed to generate cover letter")
     }
@@ -125,28 +128,6 @@ app.get("/api/models", async (req: Request, res: Response) => {
   }
 })
 
-// Check if Ollama is running and start if needed
-const ensureOllama = async (): Promise<void> => {
-  try {
-    // Try to ping Ollama
-    await ollama.list()
-    console.log("Ollama is already running")
-  } catch {
-    console.log("Starting Ollama...")
-    try {
-      // Start Ollama service
-      await execAsync("ollama serve")
-      // Wait a moment for service to start
-      await new Promise((resolve) => setTimeout(resolve, OLLAMA_STARTUP_DELAY))
-      console.log("Ollama started successfully")
-    } catch {
-      console.log(
-        'Could not auto-start Ollama. Please run "ollama serve" manually'
-      )
-    }
-  }
-}
-
 // Start server
 const startServer = async (): Promise<void> => {
   try {
@@ -162,55 +143,6 @@ const startServer = async (): Promise<void> => {
     console.error("❌ Failed to start server:", error)
     process.exit(1)
   }
-}
-
-// Utility functions
-function createCoverLetterPrompt(
-  resumeContent: string,
-  writingSample: string,
-  stanfordGuideContent: string
-): string {
-  const writingSampleSection = writingSample
-    ? `
-
-Writing Sample for Style Reference:
-${writingSample}
-
-STYLE INSTRUCTION: Analyze the writing sample above and mimic the applicant's writing style, tone, and voice in the cover letter. Match their level of formality, sentence structure, and personal expression while maintaining professionalism.`
-    : ""
-
-  return `
-You are a professional cover letter writer. Follow these STRICT requirements:
-${writingSampleSection}
-
-1. STRUCTURE: Write EXACTLY 3 paragraphs (no more, no less)
-2. LENGTH: 300-400 words total
-3. FORMAT: Include proper business letter header
-4. PARAGRAPH BREAKDOWN:
-   - Paragraph 1: Opening (state intent, position, brief introduction)
-   - Paragraph 2: Qualifications (majority of content - highlight relevant skills/experience)
-   - Paragraph 3: Closing (follow-up plan, thank you)
-
-Stanford Cover Letter Guide:
-${stanfordGuideContent}
-
-Applicant's Resume:
-${resumeContent}
-
-CRITICAL: Your response must contain EXACTLY 3 paragraphs in the body. Do not write more than 3 paragraphs. Each paragraph should be separated by a blank line.`
-}
-
-function removeThinkingTags(text: string): string {
-  return text.replace(/<think>[\s\S]*?<\/think>/gi, "").trim()
-}
-
-function handleError(res: Response, error: unknown, message: string): void {
-  console.error(message, error)
-  const errorMessage = error instanceof Error ? error.message : "Unknown error"
-  res.status(500).json({
-    error: message,
-    details: errorMessage,
-  })
 }
 
 startServer()

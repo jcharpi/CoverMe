@@ -1,39 +1,36 @@
+/**
+ * Main input component for the CoverMe application
+ * Handles resume upload, job link input, writing sample, and cover letter generation
+ */
 "use client"
 
-import { useState, useEffect } from "react"
-import { styles, svgPaths } from "./styles"
+import { useState } from "react"
+import { styles } from "./styles"
 import Output from "./output"
-
-const API_BASE_URL = "http://localhost:3001"
+import ModelSelector from "./components/ModelSelector"
+import FileUploadField from "./components/FileUploadField"
+import LinkInputField from "./components/LinkInputField"
+import WritingSampleSection from "./components/WritingSampleSection"
+import { useModels } from "./hooks/useModels"
+import { isValidInput } from "./utils/validation"
+import {
+  checkBackendHealth,
+  generateCoverLetter,
+  createFormData,
+} from "./services/api"
 
 export default function Input() {
+  // State management
   const [resumeFile, setResumeFile] = useState<File | null>(null)
   const [linkUrl, setLinkUrl] = useState("")
   const [writingSample, setWritingSample] = useState("")
   const [isProcessing, setIsProcessing] = useState(false)
   const [aiOutput, setAiOutput] = useState("")
-  const [availableModels, setAvailableModels] = useState<string[]>([])
-  const [selectedModel, setSelectedModel] = useState<string>("")
 
-  useEffect(() => {
-    fetchAvailableModels()
-  }, [])
+  // Custom hooks
+  const { availableModels, selectedModel, setSelectedModel } = useModels()
 
-  const fetchAvailableModels = async () => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/models`)
-      if (response.ok) {
-        const data = await response.json()
-        setAvailableModels(data.models)
-        if (data.models.length > 0) {
-          setSelectedModel(data.models[0])
-        }
-      }
-    } catch (error) {
-      console.error("Failed to fetch models:", error)
-    }
-  }
-
+  // Event handlers
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
@@ -55,44 +52,6 @@ export default function Input() {
     setSelectedModel(event.target.value)
   }
 
-  const createFormData = (): FormData => {
-    const formData = new FormData()
-    if (resumeFile) {
-      formData.append("resume", resumeFile)
-    }
-    if (writingSample.trim()) {
-      formData.append("writingSample", writingSample.trim())
-    }
-    if (selectedModel) {
-      formData.append("model", selectedModel)
-    }
-    return formData
-  }
-
-  const checkBackendHealth = async (): Promise<void> => {
-    const healthCheck = await fetch(`${API_BASE_URL}/api/health`)
-    if (!healthCheck.ok) {
-      throw new Error("Backend server is not responding")
-    }
-  }
-
-  const generateCoverLetter = async (formData: FormData): Promise<string> => {
-    const response = await fetch(`${API_BASE_URL}/api/generate-cover-letter`, {
-      method: "POST",
-      body: formData,
-    })
-
-    if (!response.ok) {
-      const errorData = await response
-        .json()
-        .catch(() => ({ error: "Unknown error" }))
-      throw new Error(`Server error: ${errorData.error || response.statusText}`)
-    }
-
-    const data = await response.json()
-    return data.summary || "AI output will appear here"
-  }
-
   const handleError = (error: unknown): void => {
     console.error("Error details:", error)
     const errorMessage = error instanceof Error ? error.message : String(error)
@@ -105,7 +64,9 @@ export default function Input() {
     }
   }
 
-  const bothFieldsCompleted = resumeFile && linkUrl.trim()
+  // Computed values
+  const bothFieldsCompleted =
+    resumeFile && linkUrl.trim() && isValidInput(linkUrl)
 
   const handleCreate = async () => {
     if (!resumeFile) return
@@ -113,9 +74,14 @@ export default function Input() {
     setIsProcessing(true)
     try {
       await checkBackendHealth()
-      const formData = createFormData()
-      const summary = await generateCoverLetter(formData)
-      setAiOutput(summary)
+      const formData = createFormData(
+        resumeFile,
+        writingSample,
+        selectedModel,
+        linkUrl
+      )
+      const result = await generateCoverLetter(formData)
+      setAiOutput(JSON.stringify(result))
     } catch (error) {
       handleError(error)
     } finally {
@@ -123,6 +89,7 @@ export default function Input() {
     }
   }
 
+  // Navigation functions
   const resetToHome = () => {
     setAiOutput("")
     setResumeFile(null)
@@ -130,6 +97,7 @@ export default function Input() {
     setWritingSample("")
   }
 
+  // Conditional rendering
   if (aiOutput) {
     return <Output initialOutput={aiOutput} onCreateAnother={resetToHome} />
   }
@@ -153,7 +121,11 @@ export default function Input() {
           onFileUpload={handleFileUpload}
         />
 
-        <LinkInputField linkUrl={linkUrl} onLinkChange={handleLinkChange} />
+        <LinkInputField
+          linkUrl={linkUrl}
+          onLinkChange={handleLinkChange}
+          isValid={isValidInput(linkUrl)}
+        />
 
         {bothFieldsCompleted && (
           <WritingSampleSection
@@ -163,191 +135,6 @@ export default function Input() {
             isProcessing={isProcessing}
           />
         )}
-      </div>
-    </div>
-  )
-}
-
-interface ModelSelectorProps {
-  availableModels: string[]
-  selectedModel: string
-  onModelChange: (event: React.ChangeEvent<HTMLSelectElement>) => void
-}
-
-function ModelSelector({
-  availableModels,
-  selectedModel,
-  onModelChange,
-}: ModelSelectorProps) {
-  if (availableModels.length === 0) return null
-
-  return (
-    <div style={{ position: "absolute", top: "20px", right: "20px" }}>
-      <select
-        value={selectedModel}
-        onChange={onModelChange}
-        style={{
-          padding: "8px 12px",
-          borderRadius: "6px",
-          border: "2px solid white",
-          backgroundColor: "white",
-          color: "black",
-          fontSize: "14px",
-          fontWeight: "500",
-          outline: "none",
-          cursor: "pointer",
-        }}
-      >
-        {availableModels.map((model) => (
-          <option key={model} value={model}>
-            {model}
-          </option>
-        ))}
-      </select>
-    </div>
-  )
-}
-
-interface FileUploadFieldProps {
-  resumeFile: File | null
-  onFileUpload: (event: React.ChangeEvent<HTMLInputElement>) => void
-}
-
-function FileUploadField({ resumeFile, onFileUpload }: FileUploadFieldProps) {
-  return (
-    <div className={styles.fieldContainer}>
-      <div
-        className={styles.circle}
-        style={{
-          borderColor: "white",
-          backgroundColor: resumeFile ? "white" : "transparent",
-        }}
-      >
-        {resumeFile && (
-          <svg
-            className={styles.checkIcon}
-            style={{ color: "#10b981" }}
-            fill="currentColor"
-            viewBox="0 0 20 20"
-          >
-            <path
-              fillRule="evenodd"
-              d={svgPaths.checkmark}
-              clipRule="evenodd"
-            />
-          </svg>
-        )}
-      </div>
-      <label className={styles.fileUpload}>
-        <span
-          className={`${styles.fileUploadText} ${
-            resumeFile ? "text-white" : "text-white text-opacity-50"
-          }`}
-        >
-          {resumeFile ? resumeFile.name : "Upload resume"}
-        </span>
-        <svg
-          className={styles.uploadIcon}
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d={svgPaths.upload}
-          />
-        </svg>
-        <input
-          type="file"
-          accept=".txt"
-          onChange={onFileUpload}
-          className={styles.fileInput}
-        />
-      </label>
-    </div>
-  )
-}
-
-interface LinkInputFieldProps {
-  linkUrl: string
-  onLinkChange: (event: React.ChangeEvent<HTMLInputElement>) => void
-}
-
-function LinkInputField({ linkUrl, onLinkChange }: LinkInputFieldProps) {
-  return (
-    <div className={styles.fieldContainer}>
-      <div
-        className={styles.circle}
-        style={{
-          borderColor: "white",
-          backgroundColor: linkUrl.trim() ? "white" : "transparent",
-        }}
-      >
-        {linkUrl.trim() && (
-          <svg
-            className={styles.checkIcon}
-            style={{ color: "#10b981" }}
-            fill="currentColor"
-            viewBox="0 0 20 20"
-          >
-            <path
-              fillRule="evenodd"
-              d={svgPaths.checkmark}
-              clipRule="evenodd"
-            />
-          </svg>
-        )}
-      </div>
-      <input
-        type="url"
-        placeholder="Paste Job Link"
-        value={linkUrl}
-        onChange={onLinkChange}
-        className={styles.urlInput}
-        style={{
-          width: linkUrl
-            ? `${Math.min(linkUrl.length * 8 + 100, 400)}px`
-            : "175px",
-        }}
-      />
-    </div>
-  )
-}
-
-interface WritingSampleSectionProps {
-  writingSample: string
-  onWritingChange: (event: React.ChangeEvent<HTMLTextAreaElement>) => void
-  onCreateClick: () => void
-  isProcessing: boolean
-}
-
-function WritingSampleSection({
-  writingSample,
-  onWritingChange,
-  onCreateClick,
-  isProcessing,
-}: WritingSampleSectionProps) {
-  return (
-    <div className={styles.writingSection}>
-      <h2 className={styles.sectionHeading}>Write away!</h2>
-      <div className={styles.writingContainer}>
-        <textarea
-          value={writingSample}
-          onChange={onWritingChange}
-          placeholder="Write as much as you'd like or paste a sample of your writing. The more you write, the more likely your cover letter will match your unique voice and style."
-          className={styles.textarea}
-        />
-      </div>
-      <div className={styles.buttonContainer}>
-        <button
-          className={styles.button}
-          onClick={onCreateClick}
-          disabled={isProcessing}
-        >
-          {isProcessing ? "Processing..." : "Create"}
-        </button>
       </div>
     </div>
   )
