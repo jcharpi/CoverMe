@@ -1,3 +1,7 @@
+/**
+ * Input field for job links with validation
+ * Accepts URLs or "general" with real-time validation feedback
+ */
 import { styles, svgPaths } from "../styles"
 
 interface LinkInputFieldProps {

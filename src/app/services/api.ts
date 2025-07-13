@@ -1,3 +1,7 @@
+/**
+ * API service for backend communication
+ * Handles all HTTP requests to the Express server including health checks and cover letter generation
+ */
 const API_BASE_URL = "http://localhost:3001"
 
 export interface CoverLetterResult {

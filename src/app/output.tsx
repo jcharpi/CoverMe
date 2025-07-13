@@ -1,3 +1,7 @@
+/**
+ * Output component for displaying generated cover letters
+ * Shows the cover letter with edit capability, download option, and auth warnings
+ */
 "use client"
 
 import { useState } from "react"

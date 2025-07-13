@@ -1,3 +1,7 @@
+/**
+ * Custom hook for managing available AI models
+ * Fetches and manages the list of available Ollama models
+ */
 import { useState, useEffect } from "react"
 
 const API_BASE_URL = "http://localhost:3001"

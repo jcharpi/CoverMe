@@ -1,3 +1,7 @@
+/**
+ * Error handling utility for Express routes
+ * Provides consistent error response formatting
+ */
 import { Response } from "express"
 
 export function handleError(

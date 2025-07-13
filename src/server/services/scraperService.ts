@@ -1,3 +1,7 @@
+/**
+ * Web scraping service for job postings
+ * Uses Playwright to scrape job posting content with authentication detection
+ */
 import { chromium } from "playwright"
 
 export async function scrapeJobPosting(url: string): Promise<string> {

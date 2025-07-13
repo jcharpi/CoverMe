@@ -1,3 +1,7 @@
+/**
+ * AI service for job posting parsing and cover letter generation
+ * Integrates with Ollama for AI-powered text processing and generation
+ */
 import { Ollama } from "ollama"
 import { OLLAMA_HOST } from "../config/constants"
 

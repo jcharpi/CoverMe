@@ -1,3 +1,7 @@
+/**
+ * Multer configuration for file uploads
+ * Handles resume file upload with validation for .txt files only
+ */
 import multer from "multer"
 import { Request } from "express"
 

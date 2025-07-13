@@ -1,3 +1,7 @@
+/**
+ * TypeScript interfaces for server types
+ * Defines request/response interfaces and data structures
+ */
 import { Request } from "express"
 
 export interface ResumeRequest extends Request {

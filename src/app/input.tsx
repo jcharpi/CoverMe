@@ -1,3 +1,7 @@
+/**
+ * Main input component for the CoverMe application
+ * Handles resume upload, job link input, writing sample, and cover letter generation
+ */
 "use client"
 
 import { useState } from "react"

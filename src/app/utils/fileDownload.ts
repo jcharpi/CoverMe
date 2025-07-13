@@ -1,3 +1,7 @@
+/**
+ * File download utility for cover letters
+ * Creates and triggers download of text content as a file
+ */
 export const downloadTextAsFile = (
   content: string,
   filename: string = "cover-letter.txt"

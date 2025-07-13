@@ -1,3 +1,7 @@
+/**
+ * Writing sample input section with cover letter generation
+ * Provides textarea for writing sample input and trigger for cover letter generation
+ */
 import { styles } from "../styles"
 
 interface WritingSampleSectionProps {

@@ -1,3 +1,7 @@
+/**
+ * Validation utilities for input fields
+ * Provides URL validation and combined input validation (URL or "general")
+ */
 export const isValidLink = (url: string): boolean => {
   try {
     new URL(url)

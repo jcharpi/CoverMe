@@ -1,3 +1,7 @@
+/**
+ * Main Express server for CoverMe application
+ * Handles cover letter generation, file uploads, and API endpoints
+ */
 import express, { Request, Response } from "express"
 import cors from "cors"
 import fs from "fs"
@@ -6,19 +10,19 @@ import { fileURLToPath } from "url"
 
 // Internal imports
 import { PORT } from "./src/server/config/constants"
-import { 
-  ResumeRequest, 
-  SummaryResponse, 
-  ErrorResponse, 
-  HealthResponse 
+import {
+  ResumeRequest,
+  SummaryResponse,
+  ErrorResponse,
+  HealthResponse,
 } from "./src/server/types/interfaces"
 import { upload } from "./src/server/middleware/upload"
 import { scrapeJobPosting } from "./src/server/services/scraperService"
-import { 
-  parseJobPosting, 
-  createCoverLetterPrompt, 
+import {
+  parseJobPosting,
+  createCoverLetterPrompt,
   removeThinkingTags,
-  ollama 
+  ollama,
 } from "./src/server/services/aiService"
 import { ensureOllama } from "./src/server/services/ollamaService"
 import { handleError } from "./src/server/utils/errorHandler"
@@ -67,7 +71,10 @@ app.post(
       if (jobLink.trim().toLowerCase() !== "general") {
         try {
           const rawJobContent = await scrapeJobPosting(jobLink)
-          if (rawJobContent && rawJobContent.includes("requires authentication")) {
+          if (
+            rawJobContent &&
+            rawJobContent.includes("requires authentication")
+          ) {
             hasAuthIssue = true
             jobContent = rawJobContent
           } else if (rawJobContent && rawJobContent.length > 100) {

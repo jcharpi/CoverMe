@@ -1,3 +1,7 @@
+/**
+ * Dropdown component for selecting AI models
+ * Displays available Ollama models and handles model selection
+ */
 interface ModelSelectorProps {
   availableModels: string[]
   selectedModel: string

@@ -1,3 +1,7 @@
+/**
+ * Warning banner component for authentication issues
+ * Displays when job posting scraping fails due to login requirements
+ */
 export default function AuthWarning() {
   return (
     <div

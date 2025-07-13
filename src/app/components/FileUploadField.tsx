@@ -1,3 +1,7 @@
+/**
+ * File upload component for resume files
+ * Handles .txt file upload with visual feedback and validation
+ */
 import { styles, svgPaths } from "../styles"
 
 interface FileUploadFieldProps {
