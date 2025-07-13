@@ -66,6 +66,9 @@ export default function Input() {
     if (selectedModel) {
       formData.append("model", selectedModel)
     }
+    if (linkUrl.trim()) {
+      formData.append("jobLink", linkUrl.trim())
+    }
     return formData
   }
 
@@ -105,7 +108,22 @@ export default function Input() {
     }
   }
 
-  const bothFieldsCompleted = resumeFile && linkUrl.trim()
+  const isValidLink = (url: string): boolean => {
+    try {
+      new URL(url)
+      return true
+    } catch {
+      return false
+    }
+  }
+
+  const isValidInput = (input: string): boolean => {
+    const trimmed = input.trim()
+    return isValidLink(trimmed) || trimmed.toLowerCase() === "general"
+  }
+
+  const bothFieldsCompleted =
+    resumeFile && linkUrl.trim() && isValidInput(linkUrl)
 
   const handleCreate = async () => {
     if (!resumeFile) return
@@ -153,7 +171,11 @@ export default function Input() {
           onFileUpload={handleFileUpload}
         />
 
-        <LinkInputField linkUrl={linkUrl} onLinkChange={handleLinkChange} />
+        <LinkInputField
+          linkUrl={linkUrl}
+          onLinkChange={handleLinkChange}
+          isValid={isValidInput(linkUrl)}
+        />
 
         {bothFieldsCompleted && (
           <WritingSampleSection
@@ -273,19 +295,27 @@ function FileUploadField({ resumeFile, onFileUpload }: FileUploadFieldProps) {
 interface LinkInputFieldProps {
   linkUrl: string
   onLinkChange: (event: React.ChangeEvent<HTMLInputElement>) => void
+  isValid: boolean
 }
 
-function LinkInputField({ linkUrl, onLinkChange }: LinkInputFieldProps) {
+function LinkInputField({
+  linkUrl,
+  onLinkChange,
+  isValid,
+}: LinkInputFieldProps) {
+  const hasInput = linkUrl.trim().length > 0
+  const showValidation = hasInput && !isValid
+
   return (
     <div className={styles.fieldContainer}>
       <div
         className={styles.circle}
         style={{
-          borderColor: "white",
-          backgroundColor: linkUrl.trim() ? "white" : "transparent",
+          borderColor: showValidation ? "#ef4444" : "white",
+          backgroundColor: hasInput && isValid ? "white" : "transparent",
         }}
       >
-        {linkUrl.trim() && (
+        {hasInput && isValid && (
           <svg
             className={styles.checkIcon}
             style={{ color: "#10b981" }}
@@ -299,19 +329,48 @@ function LinkInputField({ linkUrl, onLinkChange }: LinkInputFieldProps) {
             />
           </svg>
         )}
+        {showValidation && (
+          <svg
+            className={styles.checkIcon}
+            style={{ color: "#ef4444" }}
+            fill="currentColor"
+            viewBox="0 0 20 20"
+          >
+            <path
+              fillRule="evenodd"
+              d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+              clipRule="evenodd"
+            />
+          </svg>
+        )}
       </div>
-      <input
-        type="url"
-        placeholder="Paste Job Link"
-        value={linkUrl}
-        onChange={onLinkChange}
-        className={styles.urlInput}
-        style={{
-          width: linkUrl
-            ? `${Math.min(linkUrl.length * 8 + 100, 400)}px`
-            : "175px",
-        }}
-      />
+      <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+        <input
+          type="text"
+          placeholder="Job Link"
+          value={linkUrl}
+          onChange={onLinkChange}
+          className={styles.urlInput}
+          style={{
+            width: linkUrl
+              ? `${Math.min(linkUrl.length * 8 + 100, 400)}px`
+              : "175px",
+            borderColor: showValidation ? "#ef4444" : undefined,
+          }}
+        />
+        {showValidation && (
+          <span
+            style={{
+              color: "#ef4444",
+              fontSize: "12px",
+              marginLeft: "8px",
+              fontWeight: "500",
+            }}
+          >
+            Enter a valid URL or &quot;general&quot;
+          </span>
+        )}
+      </div>
     </div>
   )
 }

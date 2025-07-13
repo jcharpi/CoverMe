@@ -7,6 +7,7 @@ import { promisify } from "util"
 import fs from "fs"
 import path from "path"
 import { fileURLToPath } from "url"
+import { chromium } from "playwright"
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -86,11 +87,39 @@ app.post(
       const resumeContent: string = req.file.buffer.toString("utf8")
       const writingSample: string = req.body.writingSample || ""
       const selectedModel: string = req.body.model
+      const jobLink: string = req.body.jobLink || ""
+
+      let jobContent = ""
+      if (jobLink.trim().toLowerCase() !== "general") {
+        try {
+          jobContent = await scrapeJobPosting(jobLink)
+        } catch (error) {
+          console.error("Failed to scrape job posting:", error)
+        }
+      }
+
+      // For testing - save content to temp files
+      const tempDir = path.join(__dirname, "test")
+      if (!fs.existsSync(tempDir)) {
+        fs.mkdirSync(tempDir, { recursive: true })
+      }
+
+      const timestamp = new Date().toISOString().replace(/[:.]/g, "-")
+      fs.writeFileSync(
+        path.join(tempDir, `resume-${timestamp}.txt`),
+        resumeContent
+      )
+      fs.writeFileSync(
+        path.join(tempDir, `job-content-${timestamp}.txt`),
+        jobContent || "GENERAL COVER LETTER - No job content"
+      )
 
       const prompt: string = createCoverLetterPrompt(
         resumeContent,
         writingSample,
-        stanfordGuideContent
+        stanfordGuideContent,
+        jobContent,
+        jobLink.trim().toLowerCase() === "general"
       )
 
       // Call Ollama with selected model
@@ -165,10 +194,35 @@ const startServer = async (): Promise<void> => {
 }
 
 // Utility functions
+async function scrapeJobPosting(url: string): Promise<string> {
+  const browser = await chromium.launch({ headless: true })
+  const context = await browser.newContext()
+  const page = await context.newPage()
+
+  try {
+    await page.goto(url, { waitUntil: "networkidle" })
+
+    const textContent = await page.evaluate(() => {
+      const elementsToRemove = document.querySelectorAll(
+        "script, style, nav, header, footer, .nav, .header, .footer"
+      )
+      elementsToRemove.forEach((el) => el.remove())
+
+      return document.body.innerText
+    })
+
+    return textContent.trim()
+  } finally {
+    await browser.close()
+  }
+}
+
 function createCoverLetterPrompt(
   resumeContent: string,
   writingSample: string,
-  stanfordGuideContent: string
+  stanfordGuideContent: string,
+  jobContent: string = "",
+  isGeneral: boolean = false
 ): string {
   const writingSampleSection = writingSample
     ? `
@@ -179,9 +233,23 @@ ${writingSample}
 STYLE INSTRUCTION: Analyze the writing sample above and mimic the applicant's writing style, tone, and voice in the cover letter. Match their level of formality, sentence structure, and personal expression while maintaining professionalism.`
     : ""
 
+  const jobSection = isGeneral
+    ? `
+
+JOB TYPE: General cover letter - Do not reference specific company names, positions, or job requirements. Write a versatile cover letter that highlights the applicant's overall qualifications and can be adapted for various opportunities.`
+    : jobContent
+    ? `
+
+Job Posting Content:
+${jobContent}
+
+JOB INSTRUCTION: Analyze the job posting above and tailor the cover letter specifically to this position. Reference specific requirements, company information, and role details mentioned in the posting.`
+    : ""
+
   return `
 You are a professional cover letter writer. Follow these STRICT requirements:
 ${writingSampleSection}
+${jobSection}
 
 1. STRUCTURE: Write EXACTLY 3 paragraphs (no more, no less)
 2. LENGTH: 300-400 words total
