@@ -127,9 +127,14 @@ CRITICAL: Your response must contain EXACTLY 3 paragraphs in the body. Do not wr
 
       const summary: string = response.message.content
 
+      // Remove thinking tags from the response
+      const cleanedSummary = summary
+        .replace(/<think>[\s\S]*?<\/think>/gi, "")
+        .trim()
+
       // Send response with cover letter content
       res.json({
-        summary: summary,
+        summary: cleanedSummary,
       })
     } catch (error: unknown) {
       console.error("Error generating cover letter:", error)
