@@ -30,6 +30,7 @@ interface ResumeRequest extends Request {
 
 interface SummaryResponse {
   summary: string
+  hasAuthIssue?: boolean
 }
 
 interface ErrorResponse {
@@ -90,29 +91,23 @@ app.post(
       const jobLink: string = req.body.jobLink || ""
 
       let jobContent = ""
+      let hasAuthIssue = false
       if (jobLink.trim().toLowerCase() !== "general") {
         try {
-          jobContent = await scrapeJobPosting(jobLink)
+          const rawJobContent = await scrapeJobPosting(jobLink)
+          if (
+            rawJobContent &&
+            rawJobContent.includes("requires authentication")
+          ) {
+            hasAuthIssue = true
+            jobContent = rawJobContent
+          } else if (rawJobContent && rawJobContent.length > 100) {
+            jobContent = await parseJobPosting(rawJobContent, selectedModel)
+          }
         } catch (error) {
           console.error("Failed to scrape job posting:", error)
         }
       }
-
-      // For testing - save content to temp files
-      const tempDir = path.join(__dirname, "test")
-      if (!fs.existsSync(tempDir)) {
-        fs.mkdirSync(tempDir, { recursive: true })
-      }
-
-      const timestamp = new Date().toISOString().replace(/[:.]/g, "-")
-      fs.writeFileSync(
-        path.join(tempDir, `resume-${timestamp}.txt`),
-        resumeContent
-      )
-      fs.writeFileSync(
-        path.join(tempDir, `job-content-${timestamp}.txt`),
-        jobContent || "GENERAL COVER LETTER - No job content"
-      )
 
       const prompt: string = createCoverLetterPrompt(
         resumeContent,
@@ -131,7 +126,10 @@ app.post(
       const summary: string = response.message.content
 
       const cleanedSummary = removeThinkingTags(summary)
-      res.json({ summary: cleanedSummary })
+      res.json({
+        summary: cleanedSummary,
+        hasAuthIssue: hasAuthIssue,
+      })
     } catch (error: unknown) {
       handleError(res, error, "Failed to generate cover letter")
     }
@@ -195,25 +193,122 @@ const startServer = async (): Promise<void> => {
 
 // Utility functions
 async function scrapeJobPosting(url: string): Promise<string> {
-  const browser = await chromium.launch({ headless: true })
-  const context = await browser.newContext()
+  const browser = await chromium.launch({
+    headless: true,
+    args: ["--no-sandbox", "--disable-setuid-sandbox"],
+  })
+
+  const context = await browser.newContext({
+    userAgent:
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+  })
+
   const page = await context.newPage()
 
   try {
-    await page.goto(url, { waitUntil: "networkidle" })
+    await page.goto(url, {
+      waitUntil: "domcontentloaded",
+      timeout: 30000,
+    })
+
+    const isAuthPage = await page.evaluate(() => {
+      const authIndicators = [
+        "sign in",
+        "sign up",
+        "log in",
+        "login",
+        "register",
+      ]
+      const pageText = document.body.innerText.toLowerCase()
+      return (
+        authIndicators.some((indicator) => pageText.includes(indicator)) &&
+        pageText.length < 1000
+      )
+    })
+
+    if (isAuthPage && url.includes("linkedin.com")) {
+      return "LinkedIn requires authentication. Please use a company careers page or 'general'."
+    }
+
+    await page.waitForTimeout(2000)
 
     const textContent = await page.evaluate(() => {
       const elementsToRemove = document.querySelectorAll(
-        "script, style, nav, header, footer, .nav, .header, .footer"
+        "script, style, nav, header, footer, .nav, .header, .footer, .advertisement, .ads"
       )
       elementsToRemove.forEach((el) => el.remove())
 
-      return document.body.innerText
+      const contentSelectors = [
+        ".job-description",
+        ".job-content",
+        ".posting-content",
+        ".job-details",
+        "main",
+        ".main-content",
+        "article",
+      ]
+
+      for (const selector of contentSelectors) {
+        const element = document.querySelector(selector)
+        if (
+          element &&
+          element.textContent &&
+          element.textContent.trim().length > 100
+        ) {
+          return element.textContent.trim()
+        }
+      }
+
+      return document.body.innerText.trim()
     })
 
-    return textContent.trim()
+    return textContent
   } finally {
     await browser.close()
+  }
+}
+
+async function parseJobPosting(
+  rawJobContent: string,
+  model: string
+): Promise<string> {
+  try {
+    const parsePrompt = `
+You are a job posting parser. Extract and organize the key information from this job posting into a clean, structured format.
+
+Focus on extracting:
+1. Job Title and Company
+2. Key Responsibilities/Duties
+3. Required Skills and Qualifications
+4. Preferred Skills and Experience
+5. Company Information/Culture
+6. Benefits and Compensation (if mentioned)
+7. Location and Work Arrangement
+
+Remove any:
+- Repetitive text
+- Legal disclaimers
+- Application instructions
+- Navigation text
+- Irrelevant website content
+
+Format the output as a clean, organized summary that highlights the most important information for writing a cover letter.
+
+Raw Job Posting Content:
+${rawJobContent}
+
+Provide a clean, well-structured summary:
+`
+
+    const response = await ollama.chat({
+      model: model,
+      messages: [{ role: "user", content: parsePrompt }],
+    })
+
+    return removeThinkingTags(response.message.content)
+  } catch (error) {
+    console.error("Failed to parse job posting with AI:", error)
+    return rawJobContent // Return raw content as fallback
   }
 }
 

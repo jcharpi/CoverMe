@@ -6,7 +6,33 @@ import Output from "./output"
 
 const API_BASE_URL = "http://localhost:3001"
 
+// Types
+interface ModelSelectorProps {
+  availableModels: string[]
+  selectedModel: string
+  onModelChange: (event: React.ChangeEvent<HTMLSelectElement>) => void
+}
+
+interface FileUploadFieldProps {
+  resumeFile: File | null
+  onFileUpload: (event: React.ChangeEvent<HTMLInputElement>) => void
+}
+
+interface LinkInputFieldProps {
+  linkUrl: string
+  onLinkChange: (event: React.ChangeEvent<HTMLInputElement>) => void
+  isValid: boolean
+}
+
+interface WritingSampleSectionProps {
+  writingSample: string
+  onWritingChange: (event: React.ChangeEvent<HTMLTextAreaElement>) => void
+  onCreateClick: () => void
+  isProcessing: boolean
+}
+
 export default function Input() {
+  // State management
   const [resumeFile, setResumeFile] = useState<File | null>(null)
   const [linkUrl, setLinkUrl] = useState("")
   const [writingSample, setWritingSample] = useState("")
@@ -15,10 +41,12 @@ export default function Input() {
   const [availableModels, setAvailableModels] = useState<string[]>([])
   const [selectedModel, setSelectedModel] = useState<string>("")
 
+  // Initialize available models on mount
   useEffect(() => {
     fetchAvailableModels()
   }, [])
 
+  // API functions
   const fetchAvailableModels = async () => {
     try {
       const response = await fetch(`${API_BASE_URL}/api/models`)
@@ -34,6 +62,7 @@ export default function Input() {
     }
   }
 
+  // Event handlers
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
@@ -79,7 +108,9 @@ export default function Input() {
     }
   }
 
-  const generateCoverLetter = async (formData: FormData): Promise<string> => {
+  const generateCoverLetter = async (
+    formData: FormData
+  ): Promise<{ summary: string; hasAuthIssue: boolean }> => {
     const response = await fetch(`${API_BASE_URL}/api/generate-cover-letter`, {
       method: "POST",
       body: formData,
@@ -93,7 +124,10 @@ export default function Input() {
     }
 
     const data = await response.json()
-    return data.summary || "AI output will appear here"
+    return {
+      summary: data.summary || "AI output will appear here",
+      hasAuthIssue: data.hasAuthIssue || false,
+    }
   }
 
   const handleError = (error: unknown): void => {
@@ -108,6 +142,7 @@ export default function Input() {
     }
   }
 
+  // Validation functions
   const isValidLink = (url: string): boolean => {
     try {
       new URL(url)
@@ -122,6 +157,7 @@ export default function Input() {
     return isValidLink(trimmed) || trimmed.toLowerCase() === "general"
   }
 
+  // Computed values
   const bothFieldsCompleted =
     resumeFile && linkUrl.trim() && isValidInput(linkUrl)
 
@@ -132,8 +168,8 @@ export default function Input() {
     try {
       await checkBackendHealth()
       const formData = createFormData()
-      const summary = await generateCoverLetter(formData)
-      setAiOutput(summary)
+      const result = await generateCoverLetter(formData)
+      setAiOutput(JSON.stringify(result))
     } catch (error) {
       handleError(error)
     } finally {
@@ -141,6 +177,7 @@ export default function Input() {
     }
   }
 
+  // Navigation functions
   const resetToHome = () => {
     setAiOutput("")
     setResumeFile(null)
@@ -148,6 +185,7 @@ export default function Input() {
     setWritingSample("")
   }
 
+  // Conditional rendering
   if (aiOutput) {
     return <Output initialOutput={aiOutput} onCreateAnother={resetToHome} />
   }
@@ -190,12 +228,7 @@ export default function Input() {
   )
 }
 
-interface ModelSelectorProps {
-  availableModels: string[]
-  selectedModel: string
-  onModelChange: (event: React.ChangeEvent<HTMLSelectElement>) => void
-}
-
+// Component definitions
 function ModelSelector({
   availableModels,
   selectedModel,
@@ -228,11 +261,6 @@ function ModelSelector({
       </select>
     </div>
   )
-}
-
-interface FileUploadFieldProps {
-  resumeFile: File | null
-  onFileUpload: (event: React.ChangeEvent<HTMLInputElement>) => void
 }
 
 function FileUploadField({ resumeFile, onFileUpload }: FileUploadFieldProps) {
@@ -292,12 +320,6 @@ function FileUploadField({ resumeFile, onFileUpload }: FileUploadFieldProps) {
   )
 }
 
-interface LinkInputFieldProps {
-  linkUrl: string
-  onLinkChange: (event: React.ChangeEvent<HTMLInputElement>) => void
-  isValid: boolean
-}
-
 function LinkInputField({
   linkUrl,
   onLinkChange,
@@ -338,23 +360,23 @@ function LinkInputField({
           >
             <path
               fillRule="evenodd"
-              d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+              d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
               clipRule="evenodd"
             />
           </svg>
         )}
       </div>
-      <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
         <input
           type="text"
-          placeholder="Job Link"
+          placeholder='Job Link or "general"'
           value={linkUrl}
           onChange={onLinkChange}
           className={styles.urlInput}
           style={{
             width: linkUrl
-              ? `${Math.min(linkUrl.length * 8 + 100, 400)}px`
-              : "175px",
+              ? `${Math.max(linkUrl.length * 8 + 200, 225)}px`
+              : "225px",
             borderColor: showValidation ? "#ef4444" : undefined,
           }}
         />
@@ -363,8 +385,8 @@ function LinkInputField({
             style={{
               color: "#ef4444",
               fontSize: "12px",
-              marginLeft: "8px",
               fontWeight: "500",
+              whiteSpace: "nowrap",
             }}
           >
             Enter a valid URL or &quot;general&quot;
@@ -373,13 +395,6 @@ function LinkInputField({
       </div>
     </div>
   )
-}
-
-interface WritingSampleSectionProps {
-  writingSample: string
-  onWritingChange: (event: React.ChangeEvent<HTMLTextAreaElement>) => void
-  onCreateClick: () => void
-  isProcessing: boolean
 }
 
 function WritingSampleSection({
