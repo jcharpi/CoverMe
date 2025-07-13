@@ -36,7 +36,7 @@ import ModelSelector from "./components/ModelSelector"
 import FileUploadField from "./components/FileUploadField"
 import LinkInputField from "./components/LinkInputField"
 import WritingSampleSection from "./components/WritingSampleSection"
-import OllamaSetupMessage from "./components/OllamaSetupMessage"
+import ServerError from "./components/ServerError"
 import { useModels } from "./hooks/useModels"
 import { isValidInput } from "./utils/validation"
 import {
@@ -141,7 +141,7 @@ export default function Input() {
           </div>
         </header>
         <main className={styles.mainContent}>
-          <OllamaSetupMessage />
+          <ServerError />
         </main>
       </div>
     )

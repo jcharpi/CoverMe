@@ -1,7 +1,7 @@
 /**
  * Model Selector Component
  *
- * A dropdown component for selecting available Ollama AI models. Displays in the header
+ * A dropdown component for selecting available OpenRouter AI models. Displays in the header
  * and allows users to choose which model to use for cover letter generation. Automatically
  * hides when no models are available.
  *
@@ -35,9 +35,9 @@ export default function ModelSelector({
     const match = model.match(/\/([^:]+)/)
     if (match) {
       return match[1]
-        .split('-')
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(' ')
+        .split("-")
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(" ")
     }
     return model
   }

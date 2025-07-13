@@ -130,7 +130,7 @@ export const styles = {
   inputError: "border-[var(--error)] focus:ring-[var(--error)]",
 
   /** Select dropdown styling */
-  select: `w-full sm:w-auto min-w-[200px] px-4 py-2 bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius-md)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-[var(--border-focus)] transition-all duration-${ANIMATIONS.TRANSITION_DURATION}`,
+  select: `w-full sm:w-auto min-w-[200px] px-2 py-2 bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius-md)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-[var(--border-focus)] transition-all duration-${ANIMATIONS.TRANSITION_DURATION}`,
 
   // =============================================================================
   // TEXTAREA COMPONENTS

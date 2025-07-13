@@ -2,7 +2,7 @@
  * API route for generating cover letters using OpenRouter
  */
 import { NextRequest, NextResponse } from "next/server"
-import { createCoverLetterPrompt } from "../../../server/services/aiService"
+import { createCoverLetterPrompt } from "../../lib/aiService"
 import fs from "fs"
 import path from "path"
 

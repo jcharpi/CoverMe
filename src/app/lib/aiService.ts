@@ -1,55 +1,7 @@
 /**
- * AI service for job posting parsing and cover letter generation
- * Integrates with Ollama for AI-powered text processing and generation
+ * AI service for cover letter generation utilities
+ * Contains prompt templates and text processing functions
  */
-import { Ollama } from "ollama"
-import { OLLAMA_HOST } from "../config/constants"
-
-const ollama: Ollama = new Ollama({ host: OLLAMA_HOST })
-
-export async function parseJobPosting(
-  rawJobContent: string,
-  model: string
-): Promise<string> {
-  try {
-    const parsePrompt = `
-You are a job posting parser. Extract and organize the key information from this job posting into a clean, structured format.
-
-Focus on extracting:
-1. Job Title and Company
-2. Key Responsibilities/Duties
-3. Required Skills and Qualifications
-4. Preferred Skills and Experience
-5. Company Information/Culture
-6. Benefits and Compensation (if mentioned)
-7. Location and Work Arrangement
-
-Remove any:
-- Repetitive text
-- Legal disclaimers
-- Application instructions
-- Navigation text
-- Irrelevant website content
-
-Format the output as a clean, organized summary that highlights the most important information for writing a cover letter.
-
-Raw Job Posting Content:
-${rawJobContent}
-
-Provide a clean, well-structured summary:
-`
-
-    const response = await ollama.chat({
-      model: model,
-      messages: [{ role: "user", content: parsePrompt }],
-    })
-
-    return removeThinkingTags(response.message.content)
-  } catch (error) {
-    console.error("Failed to parse job posting with AI:", error)
-    return rawJobContent // Return raw content as fallback
-  }
-}
 
 export function createCoverLetterPrompt(
   resumeContent: string,
@@ -106,4 +58,3 @@ export function removeThinkingTags(text: string): string {
   return text.replace(/<think>[\s\S]*?<\/think>/gi, "").trim()
 }
 
-export { ollama }

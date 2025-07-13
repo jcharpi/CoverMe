@@ -37,6 +37,10 @@ export const SVG_PATHS = {
   /** Warning triangle icon for alerts */
   WARNING:
     "M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z",
+
+  /** Exclamation triangle icon for errors */
+  EXCLAMATION_TRIANGLE:
+    "M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z",
 } as const
 
 /**
@@ -49,8 +53,12 @@ export const APP_CONSTANTS = {
   /** Accepted file types for resume upload */
   ACCEPTED_FILE_TYPES: [".txt"],
 
-  /** Default AI model recommendations */
-  RECOMMENDED_MODELS: ["gemma3:1b", "deepseek-r1", "phi4-mini", "llama3.2"],
+  /** Available OpenRouter models */
+  OPENROUTER_MODELS: [
+    "deepseek/deepseek-chat-v3-0324:free",
+    "deepseek/deepseek-r1:free",
+    "qwen/qwen3-235b-a22b:free",
+  ],
 
   /** API endpoints */
   API_ENDPOINTS: {
