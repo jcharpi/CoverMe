@@ -65,17 +65,31 @@ const CONTENT_LIMITS = {
 }
 
 export function checkUrlForAuthIssues(jobUrl: string): boolean {
+  console.log("=== URL AUTH CHECK DEBUG ===")
+  console.log("Input URL:", jobUrl)
+  
   try {
     const url = new URL(jobUrl)
+    console.log("Parsed URL hostname:", url.hostname)
+    console.log("Parsed URL pathname:", url.pathname)
+    console.log("URL search params:", url.searchParams.toString())
 
     // LinkedIn job URLs that typically require auth
     if (url.hostname.includes("linkedin.com")) {
+      console.log("Detected LinkedIn URL")
+      
+      const hasJobsView = url.pathname.includes("/jobs/view/")
+      const hasJobsCollections = url.pathname.includes("/jobs/collections/")
+      const hasCurrentJobId = url.searchParams.has("currentJobId")
+      
+      console.log("Has /jobs/view/:", hasJobsView)
+      console.log("Has /jobs/collections/:", hasJobsCollections)
+      console.log("Has currentJobId param:", hasCurrentJobId)
+      
       // Standard LinkedIn job URLs that commonly redirect to auth
-      if (
-        url.pathname.includes("/jobs/view/") ||
-        url.pathname.includes("/jobs/collections/") ||
-        url.searchParams.has("currentJobId")
-      ) {
+      if (hasJobsView || hasJobsCollections || hasCurrentJobId) {
+        console.log("LinkedIn auth required: TRUE")
+        console.log("=== END URL AUTH CHECK ===")
         return true
       }
     }
@@ -87,19 +101,32 @@ export function checkUrlForAuthIssues(jobUrl: string): boolean {
       "ziprecruiter.com",
     ]
 
-    if (authRequiredDomains.some((domain) => url.hostname.includes(domain))) {
+    const matchedDomain = authRequiredDomains.find((domain) => url.hostname.includes(domain))
+    if (matchedDomain) {
+      console.log("Detected auth-required domain:", matchedDomain)
+      
+      const hasViewJob = url.pathname.includes("/viewjob")
+      const hasJobPath = url.pathname.includes("/job/")
+      const hasJkParam = url.searchParams.has("jk")
+      
+      console.log("Has /viewjob:", hasViewJob)
+      console.log("Has /job/:", hasJobPath)
+      console.log("Has jk param:", hasJkParam)
+      
       // Check for specific patterns that indicate auth walls
-      if (
-        url.pathname.includes("/viewjob") ||
-        url.pathname.includes("/job/") ||
-        url.searchParams.has("jk")
-      ) {
+      if (hasViewJob || hasJobPath || hasJkParam) {
+        console.log("Other platform auth required: TRUE")
+        console.log("=== END URL AUTH CHECK ===")
         return true
       }
     }
 
+    console.log("No auth issues detected: FALSE")
+    console.log("=== END URL AUTH CHECK ===")
     return false
-  } catch {
+  } catch (error) {
+    console.log("URL parsing error:", error)
+    console.log("=== END URL AUTH CHECK ===")
     return false
   }
 }

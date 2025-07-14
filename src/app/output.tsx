@@ -46,6 +46,15 @@ export default function Output({
 }: OutputProps) {
   // Parse output data with fallback for backwards compatibility
   const outputData = parseOutputData(initialOutput)
+  
+  console.log("=== OUTPUT COMPONENT DEBUG ===")
+  console.log("initialOutput:", initialOutput)
+  console.log("outputData:", outputData)
+  console.log("outputData.hasAuthIssue:", outputData.hasAuthIssue)
+  console.log("typeof outputData.hasAuthIssue:", typeof outputData.hasAuthIssue)
+  console.log("Will show AuthWarning:", outputData.hasAuthIssue)
+  console.log("=== END OUTPUT DEBUG ===")
+  
   const [aiOutput, setAiOutput] = useState(outputData.summary)
 
   // File download handler

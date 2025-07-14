@@ -54,13 +54,25 @@ export async function POST(request: NextRequest) {
     let jobContent = ""
     let hasAuthIssue = false
 
+    console.log("=== AUTH DETECTION DEBUG ===")
+    console.log("Job Link:", jobLink)
+    console.log("Environment:", process.env.VERCEL ? "Vercel" : "Local")
+
     if (
       jobLink &&
       jobLink.trim() &&
       jobLink.trim().toLowerCase() !== "general"
     ) {
+      // Test URL pattern check first
+      const urlBasedAuth = checkUrlForAuthIssues(jobLink)
+      console.log("URL-based auth check result:", urlBasedAuth)
+
       try {
+        console.log("Starting job scraping...")
         const scrapingResult = await scrapeJobContent(jobLink)
+        console.log("Scraping completed. Content length:", scrapingResult.content.length)
+        console.log("Scraping hasAuthIssue:", scrapingResult.hasAuthIssue)
+        
         jobContent = scrapingResult.content
         hasAuthIssue = scrapingResult.hasAuthIssue
 
@@ -71,8 +83,17 @@ export async function POST(request: NextRequest) {
         console.error("Failed to scrape job content:", error)
         // If scraping fails entirely, check URL patterns as fallback
         hasAuthIssue = checkUrlForAuthIssues(jobLink)
+        console.log("Fallback URL auth check result:", hasAuthIssue)
       }
     }
+
+    console.log("Final hasAuthIssue value:", hasAuthIssue)
+    console.log("=== END AUTH DEBUG ===")
+
+    // Log what will be returned
+    console.log("API Key present:", !!process.env.OPENROUTER_API_KEY)
+    console.log("Model being used:", model)
+    console.log("Has auth issue (final):", hasAuthIssue)
 
     const response = await fetch(
       "https://openrouter.ai/api/v1/chat/completions",
@@ -129,10 +150,17 @@ City, ST Zip Code
     // Combine header + AI output + signature
     const finalCoverLetter = header + aiOutput + "\n\nSincerely,\n[Your Name]"
 
-    return NextResponse.json({
+    const responseData = {
       summary: finalCoverLetter,
       hasAuthIssue,
-    })
+    }
+    
+    console.log("=== RESPONSE DEBUG ===")
+    console.log("Response hasAuthIssue:", responseData.hasAuthIssue)
+    console.log("Response summary length:", responseData.summary.length)
+    console.log("=== END RESPONSE DEBUG ===")
+
+    return NextResponse.json(responseData)
   } catch (error) {
     console.error("Cover letter generation error:", error)
     return NextResponse.json(

@@ -32,6 +32,13 @@ export const generateCoverLetter = async (
   }
 
   const data = await response.json()
+  
+  console.log("=== CLIENT API DEBUG ===")
+  console.log("Raw response data:", data)
+  console.log("data.hasAuthIssue:", data.hasAuthIssue)
+  console.log("typeof data.hasAuthIssue:", typeof data.hasAuthIssue)
+  console.log("=== END CLIENT API DEBUG ===")
+
   return {
     summary: data.summary || "AI output will appear here",
     hasAuthIssue: data.hasAuthIssue || false,
