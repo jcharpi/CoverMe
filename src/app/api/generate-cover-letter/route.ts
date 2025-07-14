@@ -3,7 +3,7 @@
  */
 import { NextRequest, NextResponse } from "next/server"
 import { createCoverLetterPrompt } from "../../lib/aiService"
-import { scrapeJobContent } from "../../utils/jobScraper"
+import { scrapeJobContent, checkUrlForAuthIssues } from "../../utils/jobScraper"
 import fs from "fs"
 import path from "path"
 
@@ -69,13 +69,10 @@ export async function POST(request: NextRequest) {
         }
       } catch (error) {
         console.error("Failed to scrape job content:", error)
-        // Don't fail the entire request, just proceed without job content
+        // If scraping fails entirely, check URL patterns as fallback
+        hasAuthIssue = checkUrlForAuthIssues(jobLink)
       }
     }
-
-    console.log("API Key present:", !!process.env.OPENROUTER_API_KEY)
-    console.log("Model being used:", model)
-    console.log("Has auth issue:", hasAuthIssue)
 
     const response = await fetch(
       "https://openrouter.ai/api/v1/chat/completions",

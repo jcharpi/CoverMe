@@ -30,6 +30,9 @@ const AUTH_TEXT_INDICATORS = [
   "you must be signed in",
   "access restricted",
   "please log in",
+  "join linkedin",
+  "sign in to linkedin",
+  "welcome back",
 ]
 
 const CONTENT_SELECTORS = [
@@ -58,7 +61,47 @@ const TIMEOUTS = {
 
 const CONTENT_LIMITS = {
   minLength: 100,
-  maxLength: 5000,
+  maxLength: 10000,
+}
+
+export function checkUrlForAuthIssues(jobUrl: string): boolean {
+  try {
+    const url = new URL(jobUrl)
+
+    // LinkedIn job URLs that typically require auth
+    if (url.hostname.includes("linkedin.com")) {
+      // Standard LinkedIn job URLs that commonly redirect to auth
+      if (
+        url.pathname.includes("/jobs/view/") ||
+        url.pathname.includes("/jobs/collections/") ||
+        url.searchParams.has("currentJobId")
+      ) {
+        return true
+      }
+    }
+
+    // Other job boards that commonly require auth
+    const authRequiredDomains = [
+      "indeed.com",
+      "glassdoor.com",
+      "ziprecruiter.com",
+    ]
+
+    if (authRequiredDomains.some((domain) => url.hostname.includes(domain))) {
+      // Check for specific patterns that indicate auth walls
+      if (
+        url.pathname.includes("/viewjob") ||
+        url.pathname.includes("/job/") ||
+        url.searchParams.has("jk")
+      ) {
+        return true
+      }
+    }
+
+    return false
+  } catch {
+    return false
+  }
 }
 
 export async function scrapeJobContent(
@@ -121,6 +164,12 @@ export async function scrapeJobContent(
 }
 
 async function detectAuthenticationIssues(page: Page, jobUrl: string) {
+  // Pre-check: URL-based auth detection for known problematic patterns
+  const urlBasedAuthCheck = checkUrlForAuthIssues(jobUrl)
+  if (urlBasedAuthCheck) {
+    return { hasAuthIssue: true }
+  }
+
   const pageText = (await page.textContent("body")) || ""
 
   const hasAuthSelector =
@@ -138,8 +187,20 @@ async function detectAuthenticationIssues(page: Page, jobUrl: string) {
       currentUrl.includes("signin") ||
       currentUrl.includes("auth"))
 
+  // Additional LinkedIn-specific checks
+  const isLinkedInAuthPage =
+    currentUrl.includes("linkedin.com") &&
+    (currentUrl.includes("authwall") ||
+      currentUrl.includes("login") ||
+      pageText.toLowerCase().includes("join linkedin") ||
+      pageText.toLowerCase().includes("sign in to linkedin"))
+
   return {
-    hasAuthIssue: hasAuthSelector || hasAuthText || isRedirectedToAuth,
+    hasAuthIssue:
+      hasAuthSelector ||
+      hasAuthText ||
+      isRedirectedToAuth ||
+      isLinkedInAuthPage,
   }
 }
 
