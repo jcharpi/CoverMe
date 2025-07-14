@@ -67,31 +67,21 @@ const CONTENT_LIMITS = {
 export function checkUrlForAuthIssues(jobUrl: string): boolean {
   console.log("=== URL AUTH CHECK DEBUG ===")
   console.log("Input URL:", jobUrl)
-  
+
   try {
     const url = new URL(jobUrl)
     console.log("Parsed URL hostname:", url.hostname)
     console.log("Parsed URL pathname:", url.pathname)
     console.log("URL search params:", url.searchParams.toString())
 
-    // LinkedIn job URLs that typically require auth
+    // LinkedIn job URLs - assume ALL LinkedIn job URLs require auth in serverless environments
     if (url.hostname.includes("linkedin.com")) {
-      console.log("Detected LinkedIn URL")
-      
-      const hasJobsView = url.pathname.includes("/jobs/view/")
-      const hasJobsCollections = url.pathname.includes("/jobs/collections/")
-      const hasCurrentJobId = url.searchParams.has("currentJobId")
-      
-      console.log("Has /jobs/view/:", hasJobsView)
-      console.log("Has /jobs/collections/:", hasJobsCollections)
-      console.log("Has currentJobId param:", hasCurrentJobId)
-      
-      // Standard LinkedIn job URLs that commonly redirect to auth
-      if (hasJobsView || hasJobsCollections || hasCurrentJobId) {
-        console.log("LinkedIn auth required: TRUE")
-        console.log("=== END URL AUTH CHECK ===")
-        return true
-      }
+      console.log(
+        "Detected LinkedIn URL - assuming auth required for serverless compatibility"
+      )
+      console.log("LinkedIn auth required: TRUE")
+      console.log("=== END URL AUTH CHECK ===")
+      return true
     }
 
     // Other job boards that commonly require auth
@@ -101,18 +91,20 @@ export function checkUrlForAuthIssues(jobUrl: string): boolean {
       "ziprecruiter.com",
     ]
 
-    const matchedDomain = authRequiredDomains.find((domain) => url.hostname.includes(domain))
+    const matchedDomain = authRequiredDomains.find((domain) =>
+      url.hostname.includes(domain)
+    )
     if (matchedDomain) {
       console.log("Detected auth-required domain:", matchedDomain)
-      
+
       const hasViewJob = url.pathname.includes("/viewjob")
       const hasJobPath = url.pathname.includes("/job/")
       const hasJkParam = url.searchParams.has("jk")
-      
+
       console.log("Has /viewjob:", hasViewJob)
       console.log("Has /job/:", hasJobPath)
       console.log("Has jk param:", hasJkParam)
-      
+
       // Check for specific patterns that indicate auth walls
       if (hasViewJob || hasJobPath || hasJkParam) {
         console.log("Other platform auth required: TRUE")
@@ -134,15 +126,36 @@ export function checkUrlForAuthIssues(jobUrl: string): boolean {
 export async function scrapeJobContent(
   jobUrl: string
 ): Promise<JobScrapingResult> {
+  // Pre-check: If URL indicates auth issues, skip browser automation
+  const urlAuthCheck = checkUrlForAuthIssues(jobUrl)
+  if (urlAuthCheck) {
+    console.log(
+      "URL-based auth check detected issues, skipping browser automation"
+    )
+    return {
+      content: "",
+      hasAuthIssue: true,
+      error:
+        "Authentication required to access job content (detected via URL pattern)",
+    }
+  }
+
   let browser
 
   try {
-    browser = await chromium.launch({ headless: BROWSER_CONFIG.headless })
+    console.log("Attempting to launch browser...")
+    browser = await chromium.launch({
+      headless: BROWSER_CONFIG.headless,
+      args: ["--no-sandbox", "--disable-setuid-sandbox"], // For serverless environments
+    })
+
+    console.log("Browser launched successfully")
     const context = await browser.newContext({
       userAgent: BROWSER_CONFIG.userAgent,
     })
     const page = await context.newPage()
 
+    console.log("Navigating to URL...")
     await page.goto(jobUrl, {
       waitUntil: "domcontentloaded",
       timeout: TIMEOUTS.navigation,
@@ -169,6 +182,9 @@ export async function scrapeJobContent(
   } catch (error) {
     console.error("Job scraping error:", error)
 
+    // If browser automation fails in serverless, fall back to URL-based auth detection
+    const fallbackAuthCheck = checkUrlForAuthIssues(jobUrl)
+
     const errorMessage =
       error instanceof Error ? error.message.toLowerCase() : ""
     const isLikelyAuthError = [
@@ -180,12 +196,16 @@ export async function scrapeJobContent(
 
     return {
       content: "",
-      hasAuthIssue: isLikelyAuthError,
+      hasAuthIssue: fallbackAuthCheck || isLikelyAuthError,
       error: error instanceof Error ? error.message : "Unknown scraping error",
     }
   } finally {
     if (browser) {
-      await browser.close()
+      try {
+        await browser.close()
+      } catch (closeError) {
+        console.error("Error closing browser:", closeError)
+      }
     }
   }
 }

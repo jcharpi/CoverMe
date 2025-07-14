@@ -70,9 +70,12 @@ export async function POST(request: NextRequest) {
       try {
         console.log("Starting job scraping...")
         const scrapingResult = await scrapeJobContent(jobLink)
-        console.log("Scraping completed. Content length:", scrapingResult.content.length)
+        console.log(
+          "Scraping completed. Content length:",
+          scrapingResult.content.length
+        )
         console.log("Scraping hasAuthIssue:", scrapingResult.hasAuthIssue)
-        
+
         jobContent = scrapingResult.content
         hasAuthIssue = scrapingResult.hasAuthIssue
 
@@ -154,7 +157,7 @@ City, ST Zip Code
       summary: finalCoverLetter,
       hasAuthIssue,
     }
-    
+
     console.log("=== RESPONSE DEBUG ===")
     console.log("Response hasAuthIssue:", responseData.hasAuthIssue)
     console.log("Response summary length:", responseData.summary.length)
