@@ -5,64 +5,58 @@
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || ""
 
 export interface CoverLetterResult {
-  summary: string
-  hasAuthIssue: boolean
+	summary: string
+	hasAuthIssue: boolean
 }
 
 export const checkBackendHealth = async (): Promise<void> => {
-  const healthCheck = await fetch(`${API_BASE_URL}/api/health`)
-  if (!healthCheck.ok) {
-    throw new Error("Backend server is not responding")
-  }
+	const healthCheck = await fetch(`${API_BASE_URL}/api/health`)
+	if (!healthCheck.ok) {
+		throw new Error("Backend server is not responding")
+	}
 }
 
 export const generateCoverLetter = async (
-  formData: FormData
+	formData: FormData
 ): Promise<CoverLetterResult> => {
-  const response = await fetch(`${API_BASE_URL}/api/generate-cover-letter`, {
-    method: "POST",
-    body: formData,
-  })
+	const response = await fetch(`${API_BASE_URL}/api/generate-cover-letter`, {
+		method: "POST",
+		body: formData,
+	})
 
-  if (!response.ok) {
-    const errorData = await response
-      .json()
-      .catch(() => ({ error: "Unknown error" }))
-    throw new Error(`Server error: ${errorData.error || response.statusText}`)
-  }
+	if (!response.ok) {
+		const errorData = await response
+			.json()
+			.catch(() => ({ error: "Unknown error" }))
+		throw new Error(`Server error: ${errorData.error || response.statusText}`)
+	}
 
-  const data = await response.json()
-  
-  console.log("=== CLIENT API DEBUG ===")
-  console.log("Raw response data:", data)
-  console.log("data.hasAuthIssue:", data.hasAuthIssue)
-  console.log("typeof data.hasAuthIssue:", typeof data.hasAuthIssue)
-  console.log("=== END CLIENT API DEBUG ===")
+	const data = await response.json()
 
-  return {
-    summary: data.summary || "AI output will appear here",
-    hasAuthIssue: data.hasAuthIssue || false,
-  }
+	return {
+		summary: data.summary || "AI output will appear here",
+		hasAuthIssue: data.hasAuthIssue || false,
+	}
 }
 
 export const createFormData = (
-  resumeFile: File | null,
-  writingSample: string,
-  selectedModel: string,
-  linkUrl: string
+	resumeFile: File | null,
+	writingSample: string,
+	selectedModel: string,
+	linkUrl: string
 ): FormData => {
-  const formData = new FormData()
-  if (resumeFile) {
-    formData.append("resume", resumeFile)
-  }
-  if (writingSample.trim()) {
-    formData.append("writingSample", writingSample.trim())
-  }
-  if (selectedModel) {
-    formData.append("model", selectedModel)
-  }
-  if (linkUrl.trim()) {
-    formData.append("jobLink", linkUrl.trim())
-  }
-  return formData
+	const formData = new FormData()
+	if (resumeFile) {
+		formData.append("resume", resumeFile)
+	}
+	if (writingSample.trim()) {
+		formData.append("writingSample", writingSample.trim())
+	}
+	if (selectedModel) {
+		formData.append("model", selectedModel)
+	}
+	if (linkUrl.trim()) {
+		formData.append("jobLink", linkUrl.trim())
+	}
+	return formData
 }
