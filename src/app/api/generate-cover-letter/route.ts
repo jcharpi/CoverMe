@@ -8,135 +8,107 @@ import fs from "fs"
 import path from "path"
 
 export async function POST(request: NextRequest) {
-  try {
-    const formData = await request.formData()
-    const model = formData.get("model") as string
-    const jobLink = formData.get("jobLink") as string
-    const writingSample = (formData.get("writingSample") as string) || ""
-    const resumeFile = formData.get("resume") as File
+	try {
+		const formData = await request.formData()
+		const model = formData.get("model") as string
+		const jobLink = formData.get("jobLink") as string
+		const writingSample = (formData.get("writingSample") as string) || ""
+		const resumeFile = formData.get("resume") as File
 
-    // Read Stanford guide content
-    const stanfordGuidePath = path.join(
-      process.cwd(),
-      "src",
-      "data",
-      "stanford_guide.txt"
-    )
-    const stanfordGuideContent = fs.readFileSync(stanfordGuidePath, "utf-8")
+		// Read Stanford guide content
+		const stanfordGuidePath = path.join(
+			process.cwd(),
+			"src",
+			"data",
+			"stanford_guide.txt"
+		)
+		const stanfordGuideContent = fs.readFileSync(stanfordGuidePath, "utf-8")
 
-    // Process resume file if provided
-    let resumeContent = ""
-    if (resumeFile && resumeFile.size > 0) {
-      const resumeText = await resumeFile.text()
-      resumeContent = resumeText
-    }
+		// Process resume file if provided
+		let resumeContent = ""
+		if (resumeFile && resumeFile.size > 0) {
+			const resumeText = await resumeFile.text()
+			resumeContent = resumeText
+		}
 
-    if (!process.env.OPENROUTER_API_KEY) {
-      return NextResponse.json(
-        { error: "OpenRouter API key not configured" },
-        { status: 500 }
-      )
-    }
+		if (!process.env.OPENROUTER_API_KEY) {
+			return NextResponse.json(
+				{ error: "OpenRouter API key not configured" },
+				{ status: 500 }
+			)
+		}
 
-    // Basic validation
-    if (!model) {
-      return NextResponse.json({ error: "Model is required" }, { status: 400 })
-    }
+		// Basic validation
+		if (!model) {
+			return NextResponse.json({ error: "Model is required" }, { status: 400 })
+		}
 
-    if (!resumeContent) {
-      return NextResponse.json(
-        { error: "Resume file is required" },
-        { status: 400 }
-      )
-    }
+		if (!resumeContent) {
+			return NextResponse.json(
+				{ error: "Resume file is required" },
+				{ status: 400 }
+			)
+		}
 
-    // Scrape job content and check for authentication issues
-    let jobContent = ""
-    let hasAuthIssue = false
+		// Scrape job content and check for authentication issues
+		let jobContent = ""
+		let hasAuthIssue = false
 
-    console.log("=== AUTH DETECTION DEBUG ===")
-    console.log("Job Link:", jobLink)
-    console.log("Environment:", process.env.VERCEL ? "Vercel" : "Local")
+		if (
+			jobLink &&
+			jobLink.trim() &&
+			jobLink.trim().toLowerCase() !== "general"
+		) {
+			try {
+				const scrapingResult = await scrapeJobContent(jobLink)
+				jobContent = scrapingResult.content
+				hasAuthIssue = scrapingResult.hasAuthIssue
+			} catch (error) {
+				console.error("Failed to scrape job content:", error)
+				// If scraping fails entirely, check URL patterns as fallback
+				hasAuthIssue = checkUrlForAuthIssues(jobLink)
+			}
+		}
 
-    if (
-      jobLink &&
-      jobLink.trim() &&
-      jobLink.trim().toLowerCase() !== "general"
-    ) {
-      // Test URL pattern check first
-      const urlBasedAuth = checkUrlForAuthIssues(jobLink)
-      console.log("URL-based auth check result:", urlBasedAuth)
+		const response = await fetch(
+			"https://openrouter.ai/api/v1/chat/completions",
+			{
+				method: "POST",
+				headers: {
+					Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					model: model,
+					messages: [
+						{
+							role: "user",
+							content: createCoverLetterPrompt(
+								resumeContent,
+								writingSample,
+								stanfordGuideContent,
+								jobContent || jobLink || "",
+								!jobLink || jobLink.trim().toLowerCase() === "general"
+							),
+						},
+					],
+				}),
+			}
+		)
 
-      try {
-        console.log("Starting job scraping...")
-        const scrapingResult = await scrapeJobContent(jobLink)
-        console.log(
-          "Scraping completed. Content length:",
-          scrapingResult.content.length
-        )
-        console.log("Scraping hasAuthIssue:", scrapingResult.hasAuthIssue)
+		if (!response.ok) {
+			return NextResponse.json(
+				{ error: `OpenRouter API error: ${response.statusText}` },
+				{ status: response.status }
+			)
+		}
 
-        jobContent = scrapingResult.content
-        hasAuthIssue = scrapingResult.hasAuthIssue
+		const data = await response.json()
+		const aiOutput =
+			data.choices?.[0]?.message?.content || "No content generated"
 
-        if (scrapingResult.error) {
-          console.log("Job scraping error:", scrapingResult.error)
-        }
-      } catch (error) {
-        console.error("Failed to scrape job content:", error)
-        // If scraping fails entirely, check URL patterns as fallback
-        hasAuthIssue = checkUrlForAuthIssues(jobLink)
-        console.log("Fallback URL auth check result:", hasAuthIssue)
-      }
-    }
-
-    console.log("Final hasAuthIssue value:", hasAuthIssue)
-    console.log("=== END AUTH DEBUG ===")
-
-    // Log what will be returned
-    console.log("API Key present:", !!process.env.OPENROUTER_API_KEY)
-    console.log("Model being used:", model)
-    console.log("Has auth issue (final):", hasAuthIssue)
-
-    const response = await fetch(
-      "https://openrouter.ai/api/v1/chat/completions",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: model,
-          messages: [
-            {
-              role: "user",
-              content: createCoverLetterPrompt(
-                resumeContent,
-                writingSample,
-                stanfordGuideContent,
-                jobContent || jobLink || "",
-                !jobLink || jobLink.trim().toLowerCase() === "general"
-              ),
-            },
-          ],
-        }),
-      }
-    )
-
-    if (!response.ok) {
-      return NextResponse.json(
-        { error: `OpenRouter API error: ${response.statusText}` },
-        { status: response.status }
-      )
-    }
-
-    const data = await response.json()
-    const aiOutput =
-      data.choices?.[0]?.message?.content || "No content generated"
-
-    // Hardcoded header (same as server.ts)
-    const header = `Applicant Info:
+		// Hardcoded header (same as server.ts)
+		const header = `Applicant Info:
 Address
 City, ST Zip Code
 Date
@@ -150,25 +122,20 @@ City, ST Zip Code
 
 `
 
-    // Combine header + AI output + signature
-    const finalCoverLetter = header + aiOutput + "\n\nSincerely,\n[Your Name]"
+		// Combine header + AI output + signature
+		const finalCoverLetter = header + aiOutput + "\n\nSincerely,\n[Your Name]"
 
-    const responseData = {
-      summary: finalCoverLetter,
-      hasAuthIssue,
-    }
+		const responseData = {
+			summary: finalCoverLetter,
+			hasAuthIssue,
+		}
 
-    console.log("=== RESPONSE DEBUG ===")
-    console.log("Response hasAuthIssue:", responseData.hasAuthIssue)
-    console.log("Response summary length:", responseData.summary.length)
-    console.log("=== END RESPONSE DEBUG ===")
-
-    return NextResponse.json(responseData)
-  } catch (error) {
-    console.error("Cover letter generation error:", error)
-    return NextResponse.json(
-      { error: "Failed to generate cover letter" },
-      { status: 500 }
-    )
-  }
+		return NextResponse.json(responseData)
+	} catch (error) {
+		console.error("Cover letter generation error:", error)
+		return NextResponse.json(
+			{ error: "Failed to generate cover letter" },
+			{ status: 500 }
+		)
+	}
 }

@@ -4,35 +4,35 @@
  */
 
 export function createCoverLetterPrompt(
-  resumeContent: string,
-  writingSample: string,
-  stanfordGuideContent: string,
-  jobContent: string = "",
-  isGeneral: boolean = false
+	resumeContent: string,
+	writingSample: string,
+	stanfordGuideContent: string,
+	jobContent: string = "",
+	isGeneral: boolean = false
 ): string {
-  const writingSampleSection = writingSample
-    ? `
+	const writingSampleSection = writingSample
+		? `
 
 Writing Sample for Style Reference:
 ${writingSample}
 
 STYLE INSTRUCTION: Analyze the writing sample above and mimic the applicant's writing style, tone, and voice in the cover letter. Match their level of formality, sentence structure, and personal expression while maintaining professionalism.`
-    : ""
+		: ""
 
-  const jobSection = isGeneral
-    ? `
+	const jobSection = isGeneral
+		? `
 
 JOB TYPE: General cover letter - Do not reference specific company names, positions, or job requirements. Write a versatile cover letter that highlights the applicant's overall qualifications and can be adapted for various opportunities.`
-    : jobContent
-    ? `
+		: jobContent
+		? `
 
 Job Posting Content:
 ${jobContent}
 
 JOB INSTRUCTION: Analyze the job posting above and tailor the cover letter specifically to this position. Reference specific requirements, company information, and role details mentioned in the posting.`
-    : ""
+		: ""
 
-  return `
+	return `
 You are a professional cover letter writer. Follow these STRICT requirements:
 ${writingSampleSection}
 ${jobSection}
@@ -53,8 +53,3 @@ ${resumeContent}
 
 CRITICAL: Write EXACTLY 3 paragraphs for the cover letter body. Do not include any header or signature. Each paragraph should be separated by a blank line.`
 }
-
-export function removeThinkingTags(text: string): string {
-  return text.replace(/<think>[\s\S]*?<\/think>/gi, "").trim()
-}
-

@@ -41,80 +41,72 @@ import { parseOutputData } from "./utils/outputParser"
 import { downloadTextAsFile } from "./utils/fileDownload"
 
 export default function Output({
-  initialOutput,
-  onCreateAnother,
+	initialOutput,
+	onCreateAnother,
 }: OutputProps) {
-  // Parse output data with fallback for backwards compatibility
-  const outputData = parseOutputData(initialOutput)
-  
-  console.log("=== OUTPUT COMPONENT DEBUG ===")
-  console.log("initialOutput:", initialOutput)
-  console.log("outputData:", outputData)
-  console.log("outputData.hasAuthIssue:", outputData.hasAuthIssue)
-  console.log("typeof outputData.hasAuthIssue:", typeof outputData.hasAuthIssue)
-  console.log("Will show AuthWarning:", outputData.hasAuthIssue)
-  console.log("=== END OUTPUT DEBUG ===")
-  
-  const [aiOutput, setAiOutput] = useState(outputData.summary)
+	// Parse output data with fallback for backwards compatibility
+	const outputData = parseOutputData(initialOutput)
 
-  // File download handler
-  const handleDownload = () => {
-    downloadTextAsFile(aiOutput)
-  }
+	const [aiOutput, setAiOutput] = useState(outputData.summary)
 
-  return (
-    <div className={styles.container}>
-      <header className={styles.header}>
-        <div>
-          <h1 className={styles.title}>CoverMe</h1>
-          <p className={styles.subtitle}>
-            Your personalized cover letter is ready
-          </p>
-        </div>
-      </header>
+	// File download handler
+	const handleDownload = () => {
+		downloadTextAsFile(aiOutput)
+	}
 
-      <main className={styles.mainContent}>
-        {outputData.hasAuthIssue && <AuthWarning />}
+	return (
+		<div className={styles.container}>
+			<header className={styles.header}>
+				<div>
+					<h1 className={styles.title}>CoverMe</h1>
+					<p className={styles.subtitle}>
+						Your personalized cover letter is ready
+					</p>
+				</div>
+			</header>
 
-        <div className={styles.card}>
-          <div className={styles.inputGroup}>
-            <label className={styles.label}>Your Cover Letter</label>
-            <textarea
-              value={aiOutput}
-              onChange={(e) => setAiOutput(e.target.value)}
-              className={styles.textareaLarge}
-            />
-            <div className={styles.helperText}>
-              You can edit your cover letter above before downloading
-            </div>
-          </div>
+			<main className={styles.mainContent}>
+				{outputData.hasAuthIssue && <AuthWarning />}
 
-          <div className={styles.buttonContainer}>
-            <button className={styles.buttonPrimary} onClick={handleDownload}>
-              <svg
-                className="w-5 h-5 mr-2"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d={SVG_PATHS.DOWNLOAD}
-                />
-              </svg>
-              Download as TXT
-            </button>
-            <button
-              className={styles.buttonSecondary}
-              onClick={onCreateAnother}
-            >
-              Create Another
-            </button>
-          </div>
-        </div>
-      </main>
-    </div>
-  )
+				<div className={styles.card}>
+					<div className={styles.inputGroup}>
+						<label className={styles.label}>Your Cover Letter</label>
+						<textarea
+							value={aiOutput}
+							onChange={(e) => setAiOutput(e.target.value)}
+							className={styles.textareaLarge}
+						/>
+						<div className={styles.helperText}>
+							You can edit your cover letter above before downloading
+						</div>
+					</div>
+
+					<div className={styles.buttonContainer}>
+						<button className={styles.buttonPrimary} onClick={handleDownload}>
+							<svg
+								className="w-5 h-5 mr-2"
+								fill="none"
+								stroke="currentColor"
+								viewBox="0 0 24 24"
+							>
+								<path
+									strokeLinecap="round"
+									strokeLinejoin="round"
+									strokeWidth={2}
+									d={SVG_PATHS.DOWNLOAD}
+								/>
+							</svg>
+							Download as TXT
+						</button>
+						<button
+							className={styles.buttonSecondary}
+							onClick={onCreateAnother}
+						>
+							Create Another
+						</button>
+					</div>
+				</div>
+			</main>
+		</div>
+	)
 }
