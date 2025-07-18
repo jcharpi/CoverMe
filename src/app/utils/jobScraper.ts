@@ -1,3 +1,30 @@
+/**
+ * Job Posting Scraper Utility
+ *
+ * A comprehensive web scraping utility that extracts job posting content from various
+ * job boards and company websites. Uses Playwright for browser automation and includes
+ * sophisticated authentication detection to handle login-protected content.
+ *
+ * Features:
+ * - Scrapes job content from multiple job boards (LinkedIn, Indeed, Glassdoor, etc.)
+ * - Detects authentication walls and login requirements
+ * - Handles serverless environment constraints
+ * - Provides fallback mechanisms for failed scraping attempts
+ * - Extracts and cleans job posting content automatically
+ * - URL-based pre-screening to avoid unnecessary browser launches
+ *
+ * Supported Platforms:
+ * - LinkedIn job postings
+ * - Indeed job listings
+ * - Glassdoor positions
+ * - ZipRecruiter postings
+ * - Generic company career pages
+ *
+ * @fileoverview Web scraping utility for job posting content extraction
+ * @version 1.0.0
+ * @author CoverMe Team
+ */
+
 import { chromium, Page } from "playwright"
 
 export interface JobScrapingResult {
