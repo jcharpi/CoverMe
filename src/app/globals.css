@@ -60,12 +60,9 @@
 	--radius-xl: 24px; /* Extra large radius for special cases */
 }
 
-/* Tailwind Theme Integration */
-@theme inline {
-	--color-background: var(--background);
-	--color-foreground: var(--foreground);
-	--font-sans: var(--font-inter);
-}
+/* Tailwind Theme Integration
+   Note: CSS custom properties above are used throughout the application
+   via var() functions in component styles and Tailwind utilities */
 
 /* =============================================================================
    DARK MODE COLOR OVERRIDES
